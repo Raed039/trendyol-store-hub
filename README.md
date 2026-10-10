@@ -1,0 +1,1 @@
+# trendyol-store-hub
