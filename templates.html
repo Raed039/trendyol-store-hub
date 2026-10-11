@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>بنك قوالب خدمة العملاء</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+* { box-sizing: border-box; }
+.wrap { max-width: 720px; margin-inline: auto; padding-inline: 16px; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 16px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; text-wrap: balance; }
+h1 { font-size: 1.5rem; line-height: 1.3; }
+h2 { font-size: 1rem; }
+h3 { font-size: 0.9rem; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+[hidden] { display: none !important; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field.wide { grid-column: 1 / -1; }
+.field label, .lbl { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+input[type="text"], select, textarea {
+  width: 100%; padding-inline: 10px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--field); color: var(--ink); font: inherit; font-size: 1rem;
+}
+input[type="text"], select { height: 44px; }
+textarea { padding-block: 10px; line-height: 1.8; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  min-height: 36px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--field); color: var(--ink); font: inherit; font-size: 0.88rem; cursor: pointer;
+}
+.chip:hover { border-color: var(--accent); }
+button.btn {
+  height: 44px; padding-inline: 16px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+button.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button.btn.sm { height: 34px; padding-inline: 12px; font-size: 0.85rem; }
+button.btn.danger { color: var(--bad); }
+button.btn.armed { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+button.btn:disabled { opacity: 0.55; cursor: default; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.actions .primary { flex: 1 1 160px; }
+
+.detect { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--muted); min-height: 1.6em; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--dc, var(--muted)); flex: none; }
+.tip { background: var(--accent-soft); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; }
+.note { background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; }
+#reply { min-height: 250px; font-size: 1.02rem; }
+.meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; font-size: 0.8rem; color: var(--muted); }
+#status { min-height: 1.4em; font-size: 0.85rem; color: var(--muted); }
+
+details.sec > summary { cursor: pointer; font-weight: 600; font-family: var(--font-display); font-size: 1rem; }
+details.sec[open] > summary { margin-block-end: 12px; }
+.extras { border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+.mgr-group { display: flex; flex-direction: column; gap: 6px; }
+.mgr-group + .mgr-group { margin-block-start: 6px; }
+.mgr-head { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9rem; }
+.mgr-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--field); }
+.mgr-row .t { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; }
+.mgr-row .b { display: flex; flex-wrap: wrap; gap: 6px; }
+.editor { border: 1px solid var(--accent); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; background: var(--field); }
+.editor textarea { min-height: 220px; background: var(--surface); }
+.editor input[type="text"], .editor select { background: var(--surface); }
+.phs .chip { font-size: 0.8rem; min-height: 30px; }
+#bk { min-height: 90px; direction: ltr; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<script src="nav.js"></script>
+<div class="wrap" dir="rtl" lang="ar">
+  <header>
+    <h1>بنك قوالب خدمة عملاء متجرك</h1>
+    <p class="muted">الصق رسالة العميل، فيقترح لك القالب الأنسب ويعبّئ بيانات الطلب داخل الرد. راجع الرد ثم انسخه بضغطة.</p>
+  </header>
+
+  <section class="card" aria-labelledby="h-msg">
+    <h2 id="h-msg">1. رسالة العميل</h2>
+    <div class="field">
+      <label for="msg">اكتب أو الصق سؤال العميل أو شكواه</label>
+      <textarea id="msg" rows="4" placeholder="مثال: متى يوصل طلبي؟ صار لي أسبوع أنتظر"></textarea>
+    </div>
+    <div class="chips" id="examples" role="group" aria-label="أمثلة سريعة"></div>
+    <div class="detect" id="detect">اكتب رسالة العميل ليُقترح القالب المناسب.</div>
+  </section>
+
+  <section class="card">
+    <details class="sec" id="datasec" open>
+      <summary>2. بيانات الطلب (تدخل تلقائياً في الرد)</summary>
+      <div class="grid" id="basefields"></div>
+      <div class="extras" id="extras" hidden style="margin-block-start:12px">
+        <h3>حقول خاصة بهذا القالب</h3>
+        <div class="grid" id="extrafields"></div>
+      </div>
+      <div class="actions" style="margin-block-start:12px"><button class="btn sm" type="button" id="clearorder">مسح بيانات الطلب</button></div>
+    </details>
+  </section>
+
+  <section class="card" aria-labelledby="h-rep">
+    <h2 id="h-rep">3. الرد الجاهز</h2>
+    <div class="field">
+      <label for="tpl">القالب</label>
+      <select id="tpl"></select>
+    </div>
+    <div class="tip" id="tip" hidden></div>
+    <textarea id="reply" aria-label="نص الرد" placeholder="سيظهر الرد هنا"></textarea>
+    <div class="note" id="leftover" hidden></div>
+    <div class="note" id="dirtynote" hidden>عدّلت الرد يدوياً. اضغط «إعادة من القالب» ليأخذ بيانات الطلب الجديدة.</div>
+    <div class="meta"><span id="count"></span><span id="status" role="status" aria-live="polite"></span></div>
+    <div class="actions">
+      <button class="btn primary" type="button" id="copy">نسخ الرد</button>
+      <button class="btn" type="button" id="regen">إعادة من القالب</button>
+      <button class="btn" type="button" id="ai" hidden>صياغة مخصصة بالذكاء الاصطناعي</button>
+      <button class="btn danger" type="button" id="stop" hidden>إيقاف</button>
+    </div>
+    <p class="small muted">قبل الإرسال: تأكد أن كل معلومة في الرد تطابق حالة الطلب الفعلية في لوحة المنصة. لا تطلب من العميل حذف تقييمه ولا تربط أي حل أو تعويض بالتقييم، فالمنصات عادةً تمنع ذلك، وراجع سياسة المنصة.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-mgr">
+    <h2 id="h-mgr">4. إدارة القوالب</h2>
+    <div class="actions"><button class="btn primary" type="button" id="newtpl">قالب جديد</button></div>
+    <div class="editor" id="editor" hidden>
+      <h3 id="ed-h">قالب جديد</h3>
+      <div class="field"><label for="ed-title">عنوان القالب</label><input id="ed-title" type="text"></div>
+      <div class="field"><label for="ed-cat">الفئة</label><select id="ed-cat"></select></div>
+      <div class="field"><label for="ed-keys">كلمات تدل عليه في رسالة العميل (افصل بينها بفاصلة)</label><input id="ed-keys" type="text" placeholder="تأخر، متى يوصل، وين طلبي"></div>
+      <div class="field"><label for="ed-tip">ملاحظة لك قبل الإرسال (اختياري)</label><input id="ed-tip" type="text"></div>
+      <div class="field"><label for="ed-body">نص القالب</label><textarea id="ed-body"></textarea></div>
+      <div><span class="lbl">اضغط لإدراج حقل في النص:</span><div class="chips phs" id="ed-phs" style="margin-block-start:6px"></div></div>
+      <p class="small muted">اكتب أي اسم بين قوسين مثل {سبب_التأخير} فيظهر له حقل خاص عند استخدام القالب.</p>
+      <div class="actions"><button class="btn primary" type="button" id="ed-save">حفظ القالب</button><button class="btn" type="button" id="ed-cancel">إلغاء</button></div>
+    </div>
+    <div id="mgr"></div>
+    <details class="sec" style="margin-block-start:6px">
+      <summary>نسخة احتياطية والقوالب الأصلية</summary>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <p class="small muted">قوالبك محفوظة في هذا المتصفح فقط. هذه النسخة للقوالب وحدها، والنسخة الاحتياطية الكاملة لكل الأدوات في الصفحة الرئيسية.</p>
+        <textarea id="bk" aria-label="النسخة الاحتياطية" placeholder="ألصق هنا نسخة احتياطية لاستعادتها"></textarea>
+        <div class="actions">
+          <button class="btn" type="button" id="bk-copy">نسخ نسخة احتياطية</button>
+          <button class="btn" type="button" id="bk-import">استعادة من النص</button>
+          <button class="btn danger" type="button" id="bk-reset">استعادة القوالب الأصلية</button>
+        </div>
+      </div>
+    </details>
+  </section>
+</div>
+<script src="store.js"></script>
+<script>
+/*LOGIC-START*/
+var BASE = ['اسم_العميل', 'رقم_الطلب', 'المنتج', 'المنصة', 'شركة_الشحن', 'رقم_التتبع', 'حالة_الشحنة', 'المدة_المتوقعة', 'اسم_المتجر', 'الموظف'];
+function norm(s) {
+  return String(s).toLowerCase()
+    .replace(/[ً-ْـ]/g, '')
+    .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
+    .replace(/[^؀-ۿa-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function keyList(t) {
+  return String(t.keys || '').split(/[,،]/).map(function (k) { return norm(k); }).filter(Boolean);
+}
+function scoreTpl(t, m) {
+  var s = 0;
+  keyList(t).forEach(function (k) { if (m.indexOf(k) >= 0) s += k.length > 3 ? 2 : 1; });
+  return s;
+}
+function bestMatch(tpls, msg) {
+  var m = norm(msg), best = null, bs = 0, cats = {};
+  if (!m) return { tpl: null, score: 0, cat: null };
+  tpls.forEach(function (t) {
+    var s = scoreTpl(t, m);
+    cats[t.cat] = (cats[t.cat] || 0) + s;
+    if (s > bs) { bs = s; best = t; }
+  });
+  return { tpl: best, score: bs, cat: best ? best.cat : null };
+}
+function fill(body, f, extra) {
+  return String(body).replace(/\{([^{}]+)\}/g, function (_, k) {
+    var v = BASE.indexOf(k) >= 0 ? f[k] : (extra || {})[k];
+    v = v ? String(v).trim() : '';
+    if (v) return v;
+    if (k === 'اسم_العميل') return 'عميلنا الكريم';
+    return '«' + k.replace(/_/g, ' ') + '»';
+  });
+}
+function placeholders(body) {
+  var out = [], re = /\{([^{}]+)\}/g, m;
+  while ((m = re.exec(String(body)))) if (out.indexOf(m[1]) < 0) out.push(m[1]);
+  return out;
+}
+function leftovers(text) {
+  var out = [], re = /«([^»]+)»/g, m;
+  while ((m = re.exec(String(text)))) if (out.indexOf(m[1]) < 0) out.push(m[1]);
+  return out;
+}
+/*LOGIC-END*/
+
+var CATS = {
+  ship: { name: 'تأخير الشحن', cv: '--c-ship' },
+  tech: { name: 'استفسارات فنية', cv: '--c-tech' },
+  ret: { name: 'استرجاع واستبدال', cv: '--c-ret' },
+  rev: { name: 'تقييمات سلبية', cv: '--c-rev' }
+};
+
+var DEFAULT_TPLS = [
+  { id: 'ship1', cat: 'ship', title: 'تأخير الشحن: تحديث وطمأنة',
+    keys: 'تأخر، تأخير، متى يوصل، متى توصل، وين طلبي، ما وصل، لسا ما وصل، الشحن بطيء، كم باقي',
+    tip: 'راجع حالة الشحنة الفعلية في لوحة المنصة قبل الإرسال، ولا تذكر موعداً لا تضمنه.',
+    body: `أهلاً {اسم_العميل}،
+نعتذر منك على التأخير، ونقدّر انتظارك لطلبك.
+
+تابعنا طلبك رقم {رقم_الطلب} ({المنتج}) مع {شركة_الشحن}، وحالته الآن: {حالة_الشحنة}. رقم التتبع: {رقم_التتبع}.
+
+تواصلنا مع شركة الشحن لتسريع التسليم، ونتوقع وصوله خلال {المدة_المتوقعة}. سنتابعه بأنفسنا ونطلعك على أي جديد فور حدوثه.
+
+شكراً لصبرك وثقتك بنا.
+{اسم_المتجر}` },
+
+  { id: 'ship2', cat: 'ship', title: 'تأخير الشحن: عميل غاضب',
+    keys: 'زهقت، مليت، كل مرة، سيء، زبالة، ما أثق، احتيال، نصب، استهتار، أبغى فلوسي، أسوأ، غاضب',
+    tip: 'ابدأ بالاعتراف بالضيق دون تبرير، ثم قدّم خطوة محددة. لا تجادل ولا تلُم شركة الشحن.',
+    body: `أهلاً {اسم_العميل}،
+معك حق أن تنزعج، فانتظار الطلب أكثر من الوقت المتوقع أمر مزعج، ونعتذر لك صادقين.
+
+وضع طلبك رقم {رقم_الطلب}: {حالة_الشحنة}. وقد رفعنا الأمر لدى {شركة_الشحن} برقم التتبع {رقم_التتبع} لمعالجته بشكل عاجل.
+
+سنوافيك بتحديث خلال {موعد_التحديث}. وإن كنت تفضّل إلغاء الطلب واسترداد المبلغ، فنرتب لك ذلك حسب سياسة {المنصة} متى كان الإلغاء متاحاً.
+
+يهمنا أن تنتهي هذه التجربة بصورة ترضيك.` },
+
+  { id: 'ship3', cat: 'ship', title: 'الشحنة مسجّلة مسلّمة ولم تصل',
+    keys: 'مفقود، ضاع، ما استلمت، مسجل مستلم، تم التسليم، مسلم، ما جاني، استلمها غيري',
+    tip: 'لا تتهم العميل. اطلب التحقق بلطف، وافتح بلاغاً فعلياً لدى شركة الشحن، وحدّد الحل حسب سياسة المنصة.',
+    body: `أهلاً {اسم_العميل}،
+نأسف لما حصل، ونفهم قلقك من ظهور الطلب مسلّماً وهو لم يصلك.
+
+لنساعدك بأسرع وقت، نرجو التأكد من العنوان ورقم الجوال المسجلين في الطلب {رقم_الطلب}، وسؤال الجيران أو حارس المبنى إن أمكن، فقد يُسلَّم الطلب لشخص آخر.
+
+وفي الوقت نفسه فتحنا بلاغاً لدى {شركة_الشحن} برقم التتبع {رقم_التتبع} للتحقق من إثبات التسليم. وإن تعذّر الوصول للشحنة، فسنعوّضك بإرسال بديل أو برد المبلغ حسب سياسة {المنصة}.
+
+سنوافيك بنتيجة التحقق خلال {موعد_التحديث}.` },
+
+  { id: 'ship4', cat: 'ship', title: 'تنبيه استباقي بتأخر الشحنة',
+    keys: '',
+    tip: 'أرسله قبل أن يشتكي العميل. الشفافية المبكرة تقلل التقييمات السلبية.',
+    body: `أهلاً {اسم_العميل}،
+نود إبلاغك بتأخر بسيط في توصيل طلبك رقم {رقم_الطلب} ({المنتج}) لدى {شركة_الشحن}، والسبب: {سبب_التأخير}.
+
+الموعد المتوقع الجديد: {المدة_المتوقعة}، ونتابع الشحنة أولاً بأول. رقم التتبع: {رقم_التتبع}.
+
+نعتذر عن هذا التأخير ونشكرك على تفهمك، ونحن في خدمتك لأي استفسار.` },
+
+  { id: 'tech1', cat: 'tech', title: 'الشاحن لا يعمل أو بطيء',
+    keys: 'شاحن، ما يشحن، يشحن ببطء، بطيء، يسخن، ما اشتغل، لا يعمل، ما يتعرف، الشحن السريع، ما شغال',
+    tip: 'اسأل عن موديل الجوال والكيبل المستخدم قبل الحكم بوجود عيب. هذا يحمي حق العميل وحق المتجر.',
+    body: `أهلاً {اسم_العميل}،
+نعتذر عن عدم عمل الشاحن كما تتوقع، وسنساعدك حتى يتضح السبب.
+
+جرّب هذه الخطوات السريعة:
+1) جرّب مقبساً آخر مباشرة في الجدار بدون مشترك أو وصلة.
+2) استخدم كيبلاً آخر سليماً يدعم الشحن السريع، فالكيبل العادي قد يحدّ السرعة.
+3) تأكد من نظافة منفذ الشحن في الجوال من الغبار.
+4) تأكد أن جوالك يدعم بروتوكول الشحن السريع المناسب للشاحن.
+
+إن لم تُحل المشكلة، أرسل لنا موديل جوالك وصورة أو فيديو قصير للمشكلة. وإن تأكد وجود عيب في المنتج فسنستبدله أو نرد قيمته حسب سياسة {المنصة}.
+
+رقم طلبك: {رقم_الطلب}.` },
+
+  { id: 'tech2', cat: 'tech', title: 'الكيبل يتقطع أو لا يشحن',
+    keys: 'كيبل، كابل، سلك، يتقطع، يفصل، ما يشحن، ما يتعرف، ملحق غير مدعوم، تايب سي، لايتنج',
+    tip: 'حالات كثيرة سببها المنفذ أو الشاحن لا الكيبل. اطلب تجربة أكثر من جهاز.',
+    body: `أهلاً {اسم_العميل}،
+شكراً لتواصلك، ونعتذر عن المشكلة مع الكيبل.
+
+لنحدد السبب بسرعة، نرجو تجربة التالي:
+1) جرّب الكيبل مع شاحن آخر وجهاز آخر إن أمكن.
+2) نظّف منفذ الشحن بعود خشبي أو فرشاة ناعمة، فالغبار سبب شائع لانقطاع الشحن.
+3) تأكد أن نوع منفذ الكيبل مناسب لجوالك.
+
+إن استمرت المشكلة أرسل لنا موديل جوالك وصورة أو فيديو قصير. وإن تأكد العيب فسنستبدل الكيبل أو نرد قيمته حسب سياسة {المنصة}.` },
+
+  { id: 'tech3', cat: 'tech', title: 'السماعة: مشكلة اتصال أو صوت',
+    keys: 'سماعة، سماعات، بلوتوث، ما تتصل، ما تقترن، صوت، وحدة ما تشتغل، تنقطع، ايربودز، مايك',
+    tip: 'اطلب موديل الجوال ونسخة النظام، فالمشكلة غالباً في الاقتران وليست عيب تصنيع.',
+    body: `أهلاً {اسم_العميل}،
+نعتذر عن المشكلة في السماعة، وهذه خطوات تحل أغلب الحالات:
+1) اشحن السماعة وعلبتها بالكامل.
+2) احذف السماعة من قائمة البلوتوث في جوالك.
+3) أعد السماعة للعلبة، ثم اضغط زر الاقتران مطولاً حتى يومض الضوء، فهذه إعادة ضبط.
+4) أعد الاقتران من جديد وابقَ قريباً من الجوال.
+
+إن لم تُحل المشكلة، أخبرنا بموديل جوالك ونوع المشكلة (انقطاع، سماعة واحدة، صوت منخفض) مع فيديو قصير إن أمكن. وسنتصرف حسب النتيجة بما يحفظ حقك، سواء بالاستبدال أو الاسترداد وفق سياسة {المنصة}.` },
+
+  { id: 'tech4', cat: 'tech', title: 'هل المنتج متوافق مع جهازي؟',
+    keys: 'متوافق، توافق، يناسب، يدعم، ينفع، يركب، ايفون، سامسونج، هواوي، شاومي، اوبو، ايباد',
+    tip: 'لا تؤكد التوافق قبل معرفة الموديل بدقة. التأكيد الخاطئ يسبب إرجاعاً وتقييماً سلبياً.',
+    body: `أهلاً {اسم_العميل}، شكراً لسؤالك واهتمامك بالمنتج ({المنتج}).
+
+حتى نؤكد لك التوافق بدقة، نحتاج موديل جهازك بالتحديد (مثال: iPhone 15 Pro أو Galaxy S24). بعدها نطلعك مباشرة على مدى مناسبته.
+
+{معلومات_التوافق}
+
+لا نحب أن تشتري شيئاً لا يناسبك، لذلك نفضّل التأكد أولاً. ونحن في خدمتك.` },
+
+  { id: 'ret1', cat: 'ret', title: 'طلب استرجاع ضمن المدة',
+    keys: 'ارجع، إرجاع، استرجاع، أبي أرجع، أبغى أرجع، استرداد، إلغاء، ما ناسبني، غيرت رأيي، بدال',
+    tip: 'اتبع مدة وشروط الاسترجاع المعلنة على المنصة بدقة، ولا تعد بما يخالفها.',
+    body: `أهلاً {اسم_العميل}،
+نشكرك على تواصلك، ويسعدنا أن نساعدك في طلب الإرجاع.
+
+حسب سياسة {المنصة}، يمكنك تقديم طلب الإرجاع من صفحة طلباتك في التطبيق (الطلب رقم {رقم_الطلب})، مع إعادة المنتج بحالته الأصلية وغير مستخدم وفي عبوته الأصلية قدر الإمكان.
+
+بعد استلام المنتج وفحصه، يُعاد المبلغ حسب مدة {المنصة} المعلنة ({مدة_الاسترجاع}).
+
+وإن رغبت في بديل أنسب لك من منتجاتنا فنحن جاهزون لمساعدتك. شكراً لثقتك بنا.
+{اسم_المتجر}` },
+
+  { id: 'ret2', cat: 'ret', title: 'منتج تالف أو خاطئ أو ناقص',
+    keys: 'مكسور، تالف، كسر، خربان، غلط، مو اللي طلبته، مختلف، ناقص، وصلني خطأ، خدش، مفتوح',
+    tip: 'اطلب الصور والفيديو بلطف لحماية حق المتجر عند مطالبة شركة الشحن أو المورّد، دون التشكيك في كلام العميل.',
+    body: `أهلاً {اسم_العميل}،
+نعتذر جداً عن وصول المنتج بهذه الحالة، فهذا ليس المستوى الذي نريده لك.
+
+لنعالج الأمر فوراً، نرجو إرسال صور واضحة للمنتج والعبوة وملصق الشحن، وفيديو قصير إن أمكن، بخصوص الطلب {رقم_الطلب}.
+
+فور استلام الصور سنرتب لك استبدال المنتج أو استرداد قيمته، حسب ما تفضّل ووفق سياسة {المنصة}، ونتابع ما يلزم من جانبنا لإنهاء الموضوع بسرعة.
+
+شكراً لتفهمك.` },
+
+  { id: 'ret3', cat: 'ret', title: 'طلب خارج المدة أو بعد الاستخدام',
+    keys: 'بعد شهر، بعد أسبوع، استخدمته، مستعمل، فات الوقت، انتهت المدة، ليش ما تقبلون، رفض الإرجاع',
+    tip: 'كن حازماً بلطف وقدّم بديلاً (حل مشكلة، فحص عيب). لا تَعِد بشيء خارج سياسة المنصة.',
+    body: `أهلاً {اسم_العميل}،
+نقدّر تواصلك ونتفهم رغبتك في حل الموضوع.
+
+بحسب سياسة {المنصة} المعلنة، فإن الإرجاع متاح خلال {مدة_الاسترجاع} وبشرط عدم الاستخدام، ولذلك لا نستطيع قبول الإرجاع في هذه الحالة.
+
+لكن إن كانت لديك مشكلة في عمل المنتج، فسنفحصها معك: أرسل لنا وصفاً وصورة أو فيديو، وإن ثبت أن فيه عيباً فسنعالجه وفق سياسة الضمان بما يحفظ حقك.
+
+يسعدنا مساعدتك بأي طريقة ممكنة.` },
+
+  { id: 'rev1', cat: 'rev', title: 'رد علني على تقييم سلبي (عام)',
+    keys: 'تقييم، نجمة، نجمتين، تقييم سلبي، تجربة سيئة، لا أنصح، ما أنصح',
+    tip: 'الرد علني: لا تذكر بيانات شخصية ولا رقم الطلب، ولا تجادل. اختصر وادعُ للتواصل عبر رسائل المنصة.',
+    body: `أهلاً {اسم_العميل}، شكراً لمشاركتنا تجربتك، ونأسف أنها لم تكن بمستوى توقعاتك.
+
+رضاك يهمنا، ونحب أن نفهم ما حدث ونعالجه بأنفسنا. تواصل معنا عبر رسائل {المنصة} وسنكون بخدمتك فوراً.
+
+{اسم_المتجر}` },
+
+  { id: 'rev2', cat: 'rev', title: 'رد علني: تقييم بسبب تأخير الشحن',
+    keys: 'تأخير، تأخر، الشحن، التوصيل، وصل متأخر، بطيء',
+    tip: 'اعترف بالتأخير دون أن تلقي اللوم علناً على شركة الشحن. اذكر أنك تتابع التحسين.',
+    body: `أهلاً {اسم_العميل}، نعتذر عن التأخير في وصول طلبك، ونقدّر ملاحظتك.
+
+نتابع باستمرار مستوى التوصيل مع شركات الشحن لنقلل مثل هذه الحالات، وملاحظتك تساعدنا على التحسّن. يسعدنا التواصل معك عبر رسائل {المنصة} إن كان هناك ما نستطيع فعله من أجلك.
+
+{اسم_المتجر}` },
+
+  { id: 'rev3', cat: 'rev', title: 'رد علني: تقييم على جودة المنتج',
+    keys: 'جودة، خربان، تالف، ما اشتغل، مقلد، مو أصلي، رديء، ضعيف، مستوى',
+    tip: 'لا تدخل في جدل حول أصالة أو جودة المنتج علناً. ادعُ العميل للتواصل واعرض الفحص والاستبدال.',
+    body: `أهلاً {اسم_العميل}، شكراً لصراحتك، ونأسف لأن المنتج لم يكن كما تتوقع.
+
+نحرص على جودة ما نبيعه، وسنفحص ملاحظتك بجدية. نرجو التواصل معنا عبر رسائل {المنصة} لنعرف التفاصيل ونعالج الأمر بالاستبدال أو غيره وفق سياسة {المنصة}.
+
+{اسم_المتجر}` },
+
+  { id: 'rev4', cat: 'rev', title: 'رسالة خاصة: متابعة بعد حل المشكلة',
+    keys: '',
+    tip: 'رسالة خاصة بعد الحل. لا تطلب حذف التقييم ولا تربط أي تعويض بالتقييم.',
+    body: `أهلاً {اسم_العميل}،
+يسعدنا أن مشكلة طلبك {رقم_الطلب} قد انحلّت، ونشكرك على تعاونك وصبرك معنا.
+
+نتمنى أن تكون تجربتك القادمة أفضل، وإن بقي لديك أي استفسار فنحن في خدمتك دائماً.
+
+مع خالص التقدير،
+{الموظف} - {اسم_المتجر}` }
+];
+
+var EXAMPLES = [
+  { l: 'متى يوصل طلبي؟', m: 'متى يوصل طلبي؟ تأخر كثير وأنا أنتظر من أسبوع' },
+  { l: 'مسجّل مستلم', m: 'الطلب مسجل مستلم وأنا ما استلمت شي' },
+  { l: 'الشاحن ما اشتغل', m: 'الشاحن ما اشتغل معي كويس، يشحن ببطء ويسخن' },
+  { l: 'الكيبل يتقطع', m: 'الكيبل يتقطع وما يشحن الجوال' },
+  { l: 'السماعة ما تتصل', m: 'السماعة ما تتصل بالبلوتوث' },
+  { l: 'وصلني مكسور', m: 'المنتج وصلني مكسور' },
+  { l: 'أبغى أرجّع', m: 'أبغى أرجّع الطلب ما ناسبني' },
+  { l: 'نجمة وحدة', m: 'عطيتكم نجمة وحدة، تأخر الشحن' }
+];
+
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function defaults() {
+    return { tpls: clone(DEFAULT_TPLS), tplId: 'ship1', msg: '',
+      fields: { 'اسم_العميل': '', 'رقم_الطلب': '', 'المنتج': '', 'المنصة': 'ترنديول', 'شركة_الشحن': 'J&T Express', 'رقم_التتبع': '', 'حالة_الشحنة': '', 'المدة_المتوقعة': '', 'اسم_المتجر': '', 'الموظف': '' },
+      extra: {} };
+  }
+  function validTpls(a) {
+    return Array.isArray(a) && a.every(function (t) { return t && typeof t.id === 'string' && CATS[t.cat] && typeof t.title === 'string' && typeof t.body === 'string'; });
+  }
+  var st = defaults();
+  var o = Store.read('templates', null);
+  if (o) {
+    if (validTpls(o.tpls)) st.tpls = o.tpls;
+    if (typeof o.tplId === 'string') st.tplId = o.tplId;
+    if (typeof o.msg === 'string') st.msg = o.msg;
+    if (o.fields) Object.keys(st.fields).forEach(function (k) { if (typeof o.fields[k] === 'string') st.fields[k] = o.fields[k]; });
+    if (o.extra && typeof o.extra === 'object') st.extra = o.extra;
+  }
+  function save() { Store.write('templates', st); }
+
+  var reply = $('reply'), dirty = false, editingId = null, armed = {};
+  function cur() { return st.tpls.filter(function (t) { return t.id === st.tplId; })[0] || st.tpls[0] || null; }
+  function setStatus(t) { $('status').textContent = t || ''; }
+
+  /* examples */
+  $('examples').innerHTML = EXAMPLES.map(function (e, i) { return '<button type="button" class="chip" data-ex="' + i + '">' + esc(e.l) + '</button>'; }).join('');
+
+  /* base fields */
+  $('basefields').innerHTML = BASE.map(function (k, i) {
+    var label = k.replace(/_/g, ' ');
+    var wide = (k === 'المنتج' || k === 'حالة_الشحنة') ? ' wide' : '';
+    if (k === 'المنصة') {
+      return '<div class="field"><label for="bf' + i + '">' + label + '</label><select id="bf' + i + '" data-f="' + k + '"><option>ترنديول</option><option>نون</option><option>أخرى</option></select></div>';
+    }
+    return '<div class="field' + wide + '"><label for="bf' + i + '">' + label + '</label><input id="bf' + i + '" type="text" data-f="' + k + '"></div>';
+  }).join('');
+  Array.prototype.forEach.call(document.querySelectorAll('[data-f]'), function (el) { el.value = st.fields[el.getAttribute('data-f')] || ''; });
+
+  /* template select */
+  function buildSelect() {
+    var html = '';
+    Object.keys(CATS).forEach(function (c) {
+      var items = st.tpls.filter(function (t) { return t.cat === c; });
+      if (items.length) html += '<optgroup label="' + CATS[c].name + '">' + items.map(function (t) { return '<option value="' + esc(t.id) + '">' + esc(t.title) + '</option>'; }).join('') + '</optgroup>';
+    });
+    $('tpl').innerHTML = html || '<option value="">لا توجد قوالب</option>';
+    var t = cur();
+    if (t) { st.tplId = t.id; $('tpl').value = t.id; }
+  }
+
+  function renderExtras() {
+    var t = cur();
+    var names = t ? placeholders(t.body).filter(function (n) { return BASE.indexOf(n) < 0; }) : [];
+    $('extras').hidden = !names.length;
+    $('extrafields').innerHTML = names.map(function (n, i) {
+      return '<div class="field"><label for="xf' + i + '">' + esc(n.replace(/_/g, ' ')) + '</label><input id="xf' + i + '" type="text" data-x="' + esc(n) + '" value="' + esc(st.extra[n] || '') + '"></div>';
+    }).join('');
+  }
+
+  function meta() {
+    var txt = reply.value, words = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+    $('count').textContent = words + ' كلمة، ' + txt.length + ' حرفاً';
+    var lo = leftovers(txt);
+    $('leftover').hidden = !lo.length;
+    if (lo.length) $('leftover').textContent = 'أكمل هذه الحقول قبل الإرسال: ' + lo.join('، ');
+    $('dirtynote').hidden = !dirty;
+  }
+  function regen() {
+    var t = cur();
+    reply.value = t ? fill(t.body, st.fields, st.extra) : '';
+    dirty = false;
+    var tip = $('tip');
+    tip.hidden = !(t && t.tip);
+    tip.textContent = t && t.tip ? 'ملاحظة: ' + t.tip : '';
+    meta();
+  }
+  function selectTpl(id) {
+    st.tplId = id; $('tpl').value = id;
+    renderExtras(); regen(); save();
+  }
+
+  function detect(auto) {
+    var res = bestMatch(st.tpls, st.msg);
+    var d = $('detect');
+    if (!st.msg.trim()) { d.textContent = 'اكتب رسالة العميل ليُقترح القالب المناسب.'; return; }
+    if (!res.tpl) { d.textContent = 'لم أجد قالباً مطابقاً. اختر القالب يدوياً من القائمة أدناه.'; return; }
+    d.innerHTML = '<span class="dot" style="--dc:var(' + CATS[res.cat].cv + ')"></span><span>التصنيف المقترح: <strong>' + CATS[res.cat].name + '</strong>، والقالب: ' + esc(res.tpl.title) + '</span>';
+    if (auto && res.tpl.id !== st.tplId) selectTpl(res.tpl.id);
+  }
+
+  /* message */
+  $('msg').value = st.msg;
+  $('msg').addEventListener('input', function () { st.msg = this.value; save(); detect(true); });
+  $('examples').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-ex]'); if (!b) return;
+    st.msg = EXAMPLES[+b.getAttribute('data-ex')].m; $('msg').value = st.msg; save(); detect(true);
+  });
+
+  /* fields */
+  document.addEventListener('input', function (e) {
+    var t = e.target, f = t.getAttribute && t.getAttribute('data-f'), x = t.getAttribute && t.getAttribute('data-x');
+    if (f) { st.fields[f] = t.value; }
+    else if (x) { st.extra[x] = t.value; }
+    else return;
+    save();
+    if (!dirty) regen(); else meta();
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target, f = t.getAttribute && t.getAttribute('data-f');
+    if (f && t.tagName === 'SELECT') { st.fields[f] = t.value; save(); if (!dirty) regen(); else meta(); }
+  });
+  $('clearorder').addEventListener('click', function () {
+    ['اسم_العميل', 'رقم_الطلب', 'المنتج', 'رقم_التتبع', 'حالة_الشحنة', 'المدة_المتوقعة'].forEach(function (k) { st.fields[k] = ''; });
+    st.extra = {};
+    Array.prototype.forEach.call(document.querySelectorAll('[data-f]'), function (el) { el.value = st.fields[el.getAttribute('data-f')] || ''; });
+    renderExtras(); regen(); save(); setStatus('تم مسح بيانات الطلب.');
+  });
+
+  /* template select and reply */
+  $('tpl').addEventListener('change', function () { if (this.value) selectTpl(this.value); });
+  reply.addEventListener('input', function () { dirty = true; meta(); });
+  $('regen').addEventListener('click', function () { regen(); setStatus('أُعيد الرد من القالب.'); });
+
+  /* copy */
+  function legacyCopy(text) {
+    var ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+    var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta); return ok;
+  }
+  function copyText(text, btn, okMsg) {
+    var done = function () {
+      setStatus(okMsg || 'تم النسخ.');
+      if (btn) { var old = btn.textContent; btn.textContent = 'تم النسخ'; setTimeout(function () { btn.textContent = old; }, 1400); }
+    };
+    var fail = function () { if (legacyCopy(text)) done(); else setStatus('تعذّر النسخ تلقائياً. حدّد النص وانسخه يدوياً.'); };
+    try { navigator.clipboard.writeText(text).then(done, fail); } catch (e) { fail(); }
+  }
+  $('copy').addEventListener('click', function () {
+    if (!reply.value.trim()) { setStatus('لا يوجد رد لنسخه.'); return; }
+    copyText(reply.value, this, 'تم نسخ الرد. الصقه في محادثة العميل.');
+  });
+
+  /* AI customisation (optional) */
+  var sampleFn = null, ctl = null;
+  function buildPrompt() {
+    var t = cur(), f = st.fields, lines = [];
+    ['المنصة', 'اسم_المتجر', 'اسم_العميل', 'رقم_الطلب', 'المنتج', 'شركة_الشحن', 'رقم_التتبع', 'حالة_الشحنة', 'المدة_المتوقعة'].forEach(function (k) {
+      if (f[k] && String(f[k]).trim()) lines.push('- ' + k.replace(/_/g, ' ') + ': ' + f[k]);
+    });
+    Object.keys(st.extra).forEach(function (k) { if (st.extra[k] && String(st.extra[k]).trim()) lines.push('- ' + k.replace(/_/g, ' ') + ': ' + st.extra[k]); });
+    var isPublic = t && t.cat === 'rev';
+    return 'أنت موظف خدمة عملاء محترف في متجر ' + (f['اسم_المتجر'] || '(اسم المتجر غير مذكور)') + ' المتخصص في إكسسوارات الجوالات، ويبيع على منصة ' + (f['المنصة'] || 'تجارة إلكترونية') + '.\n' +
+      'اكتب رداً للعميل بالعربية (فصحى مبسطة بلمسة سعودية مهذبة) على رسالته التالية.\n\n' +
+      'رسالة العميل:\n"""\n' + st.msg.trim() + '\n"""\n\n' +
+      'بيانات الطلب المتاحة (استخدم فقط ما هو مكتوب هنا، ولا تخترع أي معلومة أو موعد أو تعويض):\n' + (lines.length ? lines.join('\n') : '- لا توجد بيانات إضافية') + '\n\n' +
+      'نموذج الأسلوب والبنية المعتمد في المتجر (اعتمد عليه وكيّفه مع رسالة العميل الفعلية):\n"""\n' + (t ? fill(t.body, st.fields, st.extra) : '') + '\n"""\n\n' +
+      'القواعد:\n' +
+      '1) ابدأ بتحية قصيرة ثم تعاطف محدد مع مشكلة العميل بدون مبالغة، لامتصاص غضبه.\n' +
+      '2) اذكر الحقائق كما هي بواقعية. إن كانت معلومة ناقصة فاطلبها من العميل بدل التخمين.\n' +
+      '3) لا تلُم العميل ولا شركة الشحن.\n' +
+      '4) قدّم خطوة تالية واضحة، ولا تذكر موعداً إلا إذا كان مذكوراً في البيانات.\n' +
+      '5) لا تعد بتعويض أو استرداد خارج سياسة المنصة، وأحِل إلى سياسة المنصة عند الحاجة.\n' +
+      '6) لا تطلب من العميل حذف تقييم أو تعديله، ولا تربط أي حل بالتقييم.\n' +
+      (isPublic ? '7) هذا رد علني على تقييم، فلا تذكر بيانات شخصية ولا رقم الطلب، وادعُ العميل للتواصل عبر رسائل المنصة.\n' : '') +
+      '8) الطول مناسب لمحادثة المنصة (حتى 120 كلمة)، بدون عناوين ولا رموز تعبيرية ولا تنسيق ماركداون.\n' +
+      '9) إن بقيت أجزاء بين « » في النموذج فأبقها كما هي لأن الموظف سيعبئها.\n' +
+      '10) اكتب نص الرد فقط، بدون مقدمات أو شرح.';
+  }
+  function setBusy(b) { $('ai').disabled = b; $('stop').hidden = !b; $('copy').disabled = b; $('regen').disabled = b; }
+  if (window.claude && window.claude.use) {
+    window.claude.use('sample').then(function (s) { if (s) { sampleFn = s; $('ai').hidden = false; } }).catch(function () {});
+  }
+  $('ai').addEventListener('click', async function () {
+    if (!sampleFn) return;
+    if (!st.msg.trim()) { setStatus('اكتب رسالة العميل أولاً.'); $('msg').focus(); return; }
+    var prev = reply.value;
+    ctl = new AbortController();
+    setBusy(true); setStatus('جارٍ الصياغة...');
+    try {
+      var res = await sampleFn(buildPrompt(), { signal: ctl.signal, cache: false, onText: function (u) { reply.value = u.text; } });
+      reply.value = res.text.trim(); dirty = true; meta();
+      setStatus(res.truncated ? 'الرد طويل وقُطع، راجعه.' : 'هذه مسودة من Claude. راجعها قبل الإرسال.');
+    } catch (e) {
+      var code = e && e.code;
+      reply.value = (e && e.text) ? e.text : prev; dirty = true; meta();
+      if (code === 'cancelled') setStatus('تم الإيقاف.');
+      else if (code === 'not_granted' || code === 'sampling_disabled' || code === 'not_declared' || code === 'capability_disabled' || code === 'capability_removed') { $('ai').hidden = true; setStatus('الصياغة المخصصة غير متاحة هنا. استخدم القالب.'); }
+      else if (code === 'rate_limited') setStatus('طلبات كثيرة. حاول بعد قليل.');
+      else if (code === 'session_expired') setStatus('سجّل الدخول مجدداً ثم حاول.');
+      else if (code === 'refused') { reply.value = prev; setStatus('تعذّرت الصياغة لهذه الرسالة. عدّلها أو استخدم القالب.'); }
+      else setStatus('تعذّر إكمال الصياغة. حاول مرة أخرى.');
+    } finally { setBusy(false); ctl = null; }
+  });
+  $('stop').addEventListener('click', function () { if (ctl) ctl.abort(); });
+
+  /* template manager */
+  $('ed-cat').innerHTML = Object.keys(CATS).map(function (c) { return '<option value="' + c + '">' + CATS[c].name + '</option>'; }).join('');
+  $('ed-phs').innerHTML = BASE.map(function (k) { return '<button type="button" class="chip" data-ph="' + k + '">' + k.replace(/_/g, ' ') + '</button>'; }).join('');
+  function renderMgr() {
+    var html = '';
+    Object.keys(CATS).forEach(function (c) {
+      var items = st.tpls.filter(function (t) { return t.cat === c; });
+      html += '<div class="mgr-group"><div class="mgr-head"><span class="dot" style="--dc:var(' + CATS[c].cv + ')"></span>' + CATS[c].name + ' <span class="muted small">(' + items.length + ')</span></div>';
+      items.forEach(function (t) {
+        html += '<div class="mgr-row"><span class="t">' + esc(t.title) + '</span><span class="b">' +
+          '<button class="btn sm primary" type="button" data-a="use" data-id="' + esc(t.id) + '">استخدم</button>' +
+          '<button class="btn sm" type="button" data-a="copy" data-id="' + esc(t.id) + '">نسخ</button>' +
+          '<button class="btn sm" type="button" data-a="edit" data-id="' + esc(t.id) + '">تعديل</button>' +
+          '<button class="btn sm danger" type="button" data-a="del" data-id="' + esc(t.id) + '">حذف</button></span></div>';
+      });
+      if (!items.length) html += '<div class="muted small">لا توجد قوالب في هذه الفئة.</div>';
+      html += '</div>';
+    });
+    $('mgr').innerHTML = html;
+  }
+  function openEditor(t) {
+    editingId = t ? t.id : null;
+    $('ed-h').textContent = t ? 'تعديل القالب' : 'قالب جديد';
+    $('ed-title').value = t ? t.title : '';
+    $('ed-cat').value = t ? t.cat : 'ship';
+    $('ed-keys').value = t ? (t.keys || '') : '';
+    $('ed-tip').value = t ? (t.tip || '') : '';
+    $('ed-body').value = t ? t.body : '';
+    $('editor').hidden = false;
+    $('editor').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    $('ed-title').focus();
+  }
+  $('newtpl').addEventListener('click', function () { openEditor(null); });
+  $('ed-cancel').addEventListener('click', function () { $('editor').hidden = true; editingId = null; });
+  $('ed-phs').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-ph]'); if (!b) return;
+    var ta = $('ed-body'), ins = '{' + b.getAttribute('data-ph') + '}', s = ta.selectionStart || 0, en = ta.selectionEnd || 0;
+    ta.value = ta.value.slice(0, s) + ins + ta.value.slice(en);
+    ta.focus(); ta.selectionStart = ta.selectionEnd = s + ins.length;
+  });
+  $('ed-save').addEventListener('click', function () {
+    var title = $('ed-title').value.trim(), body = $('ed-body').value.trim();
+    if (!title || !body) { setStatus('اكتب عنوان القالب ونصه.'); return; }
+    var rec = { id: editingId || ('t' + Date.now().toString(36)), cat: $('ed-cat').value, title: title, keys: $('ed-keys').value.trim(), tip: $('ed-tip').value.trim(), body: body };
+    var i = st.tpls.findIndex(function (t) { return t.id === rec.id; });
+    if (i >= 0) st.tpls[i] = rec; else st.tpls.push(rec);
+    $('editor').hidden = true; editingId = null;
+    buildSelect(); renderMgr(); detect(false);
+    if (st.tplId === rec.id) { renderExtras(); if (!dirty) regen(); }
+    save(); setStatus('تم حفظ القالب.');
+  });
+  $('mgr').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var id = b.getAttribute('data-id'), a = b.getAttribute('data-a');
+    var t = st.tpls.filter(function (x) { return x.id === id; })[0]; if (!t) return;
+    if (a === 'use') { selectTpl(id); $('tpl').scrollIntoView({ behavior: 'smooth', block: 'center' }); setStatus('تم اختيار القالب.'); }
+    else if (a === 'copy') copyText(fill(t.body, st.fields, st.extra), b, 'تم نسخ القالب.');
+    else if (a === 'edit') openEditor(t);
+    else if (a === 'del') {
+      if (armed[id]) {
+        st.tpls = st.tpls.filter(function (x) { return x.id !== id; });
+        delete armed[id]; buildSelect(); renderExtras(); renderMgr(); regen(); detect(false); save(); setStatus('تم حذف القالب.');
+      } else {
+        armed[id] = true; b.textContent = 'اضغط للتأكيد'; b.classList.add('armed');
+        setTimeout(function () { delete armed[id]; if (b.isConnected) { b.textContent = 'حذف'; b.classList.remove('armed'); } }, 3000);
+      }
+    }
+  });
+
+  /* backup */
+  $('bk-copy').addEventListener('click', function () {
+    var json = JSON.stringify(st.tpls);
+    $('bk').value = json;
+    copyText(json, this, 'تم نسخ النسخة الاحتياطية. احفظها في ملاحظاتك.');
+  });
+  var bkArmed = false;
+  $('bk-import').addEventListener('click', function () {
+    var btn = this, text = $('bk').value.trim();
+    var data; try { data = JSON.parse(text); } catch (e) { data = null; }
+    if (!validTpls(data) || !data.length) { setStatus('النص ليس نسخة احتياطية صالحة.'); return; }
+    if (!bkArmed) { bkArmed = true; btn.textContent = 'اضغط للتأكيد'; setTimeout(function () { bkArmed = false; btn.textContent = 'استعادة من النص'; }, 3000); return; }
+    bkArmed = false; btn.textContent = 'استعادة من النص';
+    st.tpls = data; st.tplId = data[0].id;
+    buildSelect(); renderExtras(); renderMgr(); regen(); detect(false); save(); setStatus('تمت استعادة القوالب.');
+  });
+  var rsArmed = false;
+  $('bk-reset').addEventListener('click', function () {
+    var btn = this;
+    if (!rsArmed) { rsArmed = true; btn.textContent = 'اضغط للتأكيد'; btn.classList.add('armed'); setTimeout(function () { rsArmed = false; btn.textContent = 'استعادة القوالب الأصلية'; btn.classList.remove('armed'); }, 3000); return; }
+    rsArmed = false; btn.textContent = 'استعادة القوالب الأصلية'; btn.classList.remove('armed');
+    st.tpls = clone(DEFAULT_TPLS); st.tplId = 'ship1';
+    buildSelect(); renderExtras(); renderMgr(); regen(); detect(false); save(); setStatus('عادت القوالب الأصلية.');
+  });
+
+  /* start */
+  buildSelect(); renderExtras(); renderMgr(); regen();
+  if (st.msg.trim()) detect(false);
+})();
+</script>
+</body>
+</html>

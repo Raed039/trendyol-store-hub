@@ -1,0 +1,145 @@
+/* التصميم المشترك لكل صفحات المتجر: الألوان والخطوط وشريط التنقل.
+   غيّر القيم هنا مرة واحدة فتتغير كل الأدوات. */
+:root {
+  --bg: #F2F5F8;
+  --surface: #FFFFFF;
+  --field: #F6F8FA;
+  --ink: #14212B;
+  --muted: #5B6B78;
+  --line: #D9E0E6;
+  --accent: #0B6E8A;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E3F1F6;
+  --good: #0E7A4B;
+  --good-bg: #E1F3EA;
+  --warn: #8F5A00;
+  --warn-bg: #FBF0D9;
+  --bad: #B3261E;
+  --bad-bg: #FBE4E2;
+  /* أسماء بديلة مستخدمة في بعض الصفحات */
+  --ok: var(--good);
+  --ok-bg: var(--good-bg);
+  --low: var(--warn);
+  --low-bg: var(--warn-bg);
+  --out: var(--bad);
+  --out-bg: var(--bad-bg);
+  /* حالات الطلبات */
+  --s-prep: #8F5A00;
+  --s-prep-bg: #FBF0D9;
+  --s-print: #2F6FB0;
+  --s-print-bg: #E1ECF8;
+  --s-ship: #0E7A4B;
+  --s-ship-bg: #E1F3EA;
+  --s-cancel: #6B7782;
+  --s-cancel-bg: #E8ECEF;
+  /* فئات خدمة العملاء */
+  --c-ship: #2F7FB8;
+  --c-tech: #7A5FC2;
+  --c-ret: #C07A1D;
+  --c-rev: #C2456B;
+  --font-display: 'Readex Pro', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E151B;
+    --surface: #16202A;
+    --field: #1B2732;
+    --ink: #E6EDF2;
+    --muted: #9AABB8;
+    --line: #2A3947;
+    --accent: #5BB6D6;
+    --accent-ink: #08222C;
+    --accent-soft: #14303B;
+    --good: #4CC38A;
+    --good-bg: #153326;
+    --warn: #E8B04A;
+    --warn-bg: #3A2D12;
+    --bad: #FF8A80;
+    --bad-bg: #3F1D1B;
+    --s-prep: #E8B04A;
+    --s-prep-bg: #3A2D12;
+    --s-print: #7DB4EE;
+    --s-print-bg: #17304A;
+    --s-ship: #4CC38A;
+    --s-ship-bg: #153326;
+    --s-cancel: #A3B0BA;
+    --s-cancel-bg: #26323C;
+    --c-ship: #6FB1E0;
+    --c-tech: #A992E6;
+    --c-ret: #E0A04A;
+    --c-rev: #EE7C9C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E151B;
+  --surface: #16202A;
+  --field: #1B2732;
+  --ink: #E6EDF2;
+  --muted: #9AABB8;
+  --line: #2A3947;
+  --accent: #5BB6D6;
+  --accent-ink: #08222C;
+  --accent-soft: #14303B;
+  --good: #4CC38A;
+  --good-bg: #153326;
+  --warn: #E8B04A;
+  --warn-bg: #3A2D12;
+  --bad: #FF8A80;
+  --bad-bg: #3F1D1B;
+  --s-prep: #E8B04A;
+  --s-prep-bg: #3A2D12;
+  --s-print: #7DB4EE;
+  --s-print-bg: #17304A;
+  --s-ship: #4CC38A;
+  --s-ship-bg: #153326;
+  --s-cancel: #A3B0BA;
+  --s-cancel-bg: #26323C;
+  --c-ship: #6FB1E0;
+  --c-tech: #A992E6;
+  --c-ret: #E0A04A;
+  --c-rev: #EE7C9C;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+}
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+.wrap { max-width: 1080px; margin-inline: auto; padding-inline: 16px; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 16px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--accent); }
+
+/* شريط التنقل بين الأدوات (يُبنى من nav.js) */
+.hubnav {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; gap: 4px; align-items: center;
+  overflow-x: auto;
+  padding: 6px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.hubnav a {
+  flex: none;
+  padding: 7px 14px;
+  border-radius: 999px;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+.hubnav a:hover { background: var(--field); }
+.hubnav a[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+.hubnav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

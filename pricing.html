@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>أداة التسعير</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+* { box-sizing: border-box; }
+.wrap { max-width: 640px; margin-inline: auto; padding-inline: 16px; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 16px; }
+h1, h2 { font-family: var(--font-display); font-weight: 600; margin: 0; text-wrap: balance; }
+h1 { font-size: 1.5rem; line-height: 1.3; }
+h2 { font-size: 1rem; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.num { direction: ltr; unicode-bidi: isolate; display: inline-block; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pos { color: var(--good); }
+.neg { color: var(--bad); }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field.wide { grid-column: 1 / -1; }
+.field label, .lbl { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+.field input, .field select {
+  width: 100%; height: 44px; padding-inline: 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--field); color: var(--ink); font: inherit; font-size: 1rem;
+}
+.field input[type="number"] { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; }
+.field input:focus-visible, .field select:focus-visible, .chip:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip {
+  height: 38px; min-width: 52px; padding-inline: 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--field); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+.sub-h { display: flex; flex-direction: column; gap: 8px; }
+.sub-h + .sub-h { border-top: 1px solid var(--line); padding-top: 14px; }
+.ro { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.ro.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.rbox { border: 1px dashed var(--line); border-radius: 8px; padding: 6px 10px; background: var(--field); display: flex; flex-direction: column; min-width: 0; }
+.rbox span.l { font-size: 0.75rem; color: var(--muted); }
+.rbox span.v { font-family: var(--font-display); font-weight: 600; font-size: 1rem; }
+.ro.three .rbox { padding-inline: 8px; }
+.ro.three .rbox span.v { font-size: 0.95rem; }
+
+.target { border: 1px solid var(--accent); background: var(--accent-soft); border-radius: 10px; padding: 12px; }
+.target input { font-family: var(--font-display); font-weight: 600; font-size: 1.4rem; height: 52px; background: var(--surface); }
+
+.answer { border-color: var(--accent); }
+.answer .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 420px) { .answer .pair { grid-template-columns: minmax(0, 1fr); } }
+.answer .blk { display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 10px; background: var(--field); min-width: 0; }
+.answer .blk.main { background: var(--accent-soft); }
+.answer .blk .t { font-size: 0.8rem; color: var(--muted); }
+.answer .blk .big { font-family: var(--font-display); font-weight: 600; font-size: 2rem; line-height: 1.2; }
+.answer .blk.main .big { color: var(--accent); }
+.answer .blk .big small { font-size: 0.9rem; font-weight: 500; color: var(--muted); }
+.answer .blk .s { font-size: 0.82rem; color: var(--muted); }
+.answer .line { color: var(--muted); }
+.answer .line strong { color: var(--ink); }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 8px 6px; text-align: right; border-bottom: 1px solid var(--line); }
+th { font-size: 0.78rem; font-weight: 500; color: var(--muted); }
+td.v, th.v { text-align: left; }
+tbody tr:last-child td { border-bottom: 0; }
+table.steps tr.grp td { background: var(--field); font-weight: 600; font-size: 0.85rem; }
+table.steps tr.key td { font-weight: 600; }
+table.steps tr.pay td { font-weight: 600; background: var(--accent-soft); }
+table.steps tr.note td { color: var(--muted); font-size: 0.82rem; padding-block: 0 8px; }
+table.steps tr.final td { font-weight: 600; font-size: 1.05rem; border-top: 2px solid var(--ink); }
+table.cmp { min-width: 420px; }
+table.cmp tr.sel td { background: var(--accent-soft); font-weight: 600; }
+.tablebox { overflow-x: auto; }
+
+details.adv summary { cursor: pointer; font-weight: 600; }
+details.adv .grid { margin-block-start: 12px; }
+details.adv .field select { font-size: 0.9rem; }
+.warn { color: var(--bad); font-size: 0.9rem; }
+.chip:disabled { opacity: .5; cursor: not-allowed; }
+.field select#invsel { font-size: .95rem; }
+</style>
+</head>
+<body>
+<script src="nav.js"></script>
+<div class="wrap" dir="rtl" lang="ar">
+  <header>
+    <h1>أداة التسعير السريع</h1>
+    <p class="muted">أدخل التكلفة والحملة والربح الذي تريده، فيظهر السعر الذي تضعه على المنصة والمبلغ الذي تحوّله لك.</p>
+  </header>
+
+  <section class="card" aria-labelledby="h-inv">
+    <h2 id="h-inv">من المخزون (اختياري)</h2>
+    <div class="field"><label for="invsel">اختر منتجاً من صفحة المخزون</label><select id="invsel"></select></div>
+    <div class="chips">
+      <button type="button" class="chip" id="invfill">خذ تكلفته</button>
+      <button type="button" class="chip" id="invapprove">اعتمد السعر المقترح له</button>
+    </div>
+    <p class="small muted" id="invmsg" role="status" aria-live="polite">«خذ تكلفته» تنقل سعر شرائه بدون ضريبة إلى الخانة أدناه. «اعتمد» يحفظ السعر المقترح (مقرّباً لأعلى) كسعر بيعه في المخزون.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-in">
+    <h2 id="h-in">1. التكاليف</h2>
+    <div class="field">
+      <span class="lbl" id="entry-lbl">أدخل التكلفة والشحن</span>
+      <div class="chips" role="group" aria-labelledby="entry-lbl" id="entrymode">
+        <button type="button" class="chip" data-e="ex" aria-pressed="false">بدون ضريبة</button>
+        <button type="button" class="chip" data-e="incl" aria-pressed="false">شاملة الضريبة</button>
+      </div>
+    </div>
+
+    <div class="sub-h">
+      <div class="field"><label for="buy" id="buy-lbl">تكلفة المنتج (ر.س)</label><input id="buy" type="number" inputmode="decimal" min="0" step="0.5" data-k="buy"></div>
+      <div class="ro three">
+        <div class="rbox"><span class="l">بدون ضريبة</span><span class="v" id="ro-buy-ex">—</span></div>
+        <div class="rbox"><span class="l">الضريبة</span><span class="v" id="ro-buy-vat">—</span></div>
+        <div class="rbox"><span class="l">شاملة</span><span class="v" id="ro-buy-inc">—</span></div>
+      </div>
+    </div>
+
+    <div class="sub-h">
+      <div class="field"><label for="ship" id="ship-lbl">الشحن (ر.س)</label><input id="ship" type="number" inputmode="decimal" min="0" step="0.5" data-k="ship"></div>
+      <div class="ro three">
+        <div class="rbox"><span class="l">بدون ضريبة</span><span class="v" id="ro-ship-ex">—</span></div>
+        <div class="rbox"><span class="l">الضريبة</span><span class="v" id="ro-ship-vat">—</span></div>
+        <div class="rbox"><span class="l">شامل</span><span class="v" id="ro-ship-inc">—</span></div>
+      </div>
+    </div>
+
+    <div class="sub-h">
+      <div class="field">
+        <span class="lbl" id="comm-lbl">عمولة المنصة</span>
+        <div class="chips" role="group" aria-labelledby="comm-lbl" id="commmode">
+          <button type="button" class="chip" data-m="pct" aria-pressed="true">نسبة %</button>
+          <button type="button" class="chip" data-m="amt" aria-pressed="false">مبلغ ر.س</button>
+        </div>
+      </div>
+      <div class="field"><label for="comm" id="comm-in-lbl">نسبة العمولة % من سعر العميل</label><input id="comm" type="number" inputmode="decimal" min="0" step="0.5"></div>
+      <div class="ro">
+        <div class="rbox"><span class="l">مبلغ العمولة بدون ضريبة</span><span class="v" id="ro-comm">—</span></div>
+        <div class="rbox"><span class="l">القيمة المضافة على العمولة</span><span class="v" id="ro-commvat">—</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="h-camp">
+    <h2 id="h-camp">2. الحملة</h2>
+    <div class="field">
+      <label for="disc">خصم الحملة على العميل % (اكتب أي رقم)</label>
+      <input id="disc" type="number" inputmode="decimal" min="0" max="95" step="0.5" data-k="disc">
+    </div>
+    <div class="chips" role="group" aria-label="اختصارات الخصم" id="chips">
+      <button type="button" class="chip" data-d="0" aria-pressed="false">0%</button>
+      <button type="button" class="chip" data-d="5" aria-pressed="false">5%</button>
+      <button type="button" class="chip" data-d="10" aria-pressed="false">10%</button>
+      <button type="button" class="chip" data-d="20" aria-pressed="false">20%</button>
+      <button type="button" class="chip" data-d="30" aria-pressed="false">30%</button>
+    </div>
+    <p class="warn" id="disc-hint" hidden>أعلى خصم يحسبه الجدول هو 95%.</p>
+    <div class="field">
+      <label for="support">ما تتحمله المنصة من الخصم % (من قيمة الخصم)</label>
+      <input id="support" type="number" inputmode="decimal" min="0" max="100" step="1" data-k="support">
+    </div>
+    <div class="ro">
+      <div class="rbox"><span class="l">تدفع المنصة من الخصم</span><span class="v" id="ro-subs">—</span></div>
+      <div class="rbox"><span class="l">تتحمل أنت من الخصم</span><span class="v" id="ro-mine">—</span></div>
+    </div>
+  </section>
+
+  <section class="card target field" style="gap:6px">
+    <label for="target" style="font-weight:600;color:var(--ink)">3. الربح الصافي المطلوب للقطعة (ر.س)</label>
+    <input id="target" type="number" inputmode="decimal" step="0.5" data-k="target">
+  </section>
+
+  <section class="card answer" aria-labelledby="h-ans" aria-live="polite">
+    <h2 id="h-ans">4. النتيجة</h2>
+    <div class="pair">
+      <div class="blk main">
+        <span class="t">السعر المقترح شامل الضريبة (قبل الخصم)</span>
+        <span class="big" id="out-price">—</span>
+        <span class="s" id="out-cust"></span>
+      </div>
+      <div class="blk">
+        <span class="t">المبلغ المحوّل لك من المنصة</span>
+        <span class="big" id="out-payout">—</span>
+        <span class="s">قبل استخراج الضريبة وقبل التكلفة</span>
+      </div>
+    </div>
+    <p class="line" id="out-round"></p>
+    <p class="warn" id="out-warn" hidden>تعذّر حساب السعر. راجع نسبة العمولة والخصم.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-steps">
+    <h2 id="h-steps">5. كيف وصلنا للمبلغ والربح؟</h2>
+    <div class="tablebox"><table class="steps"><tbody id="steps"></tbody></table></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-cmp">
+    <h2 id="h-cmp">6. السعر المطلوب عند كل خصم</h2>
+    <div class="tablebox">
+      <table class="cmp">
+        <thead><tr><th>الخصم</th><th class="v">السعر قبل الخصم</th><th class="v">سعر العميل</th><th class="v">المحوّل لك</th></tr></thead>
+        <tbody id="cmp"></tbody>
+      </table>
+    </div>
+    <p class="small muted">كل سطر يضمن نفس الربح المطلوب.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-chk">
+    <h2 id="h-chk">7. اختبر سعراً عندك (اختياري)</h2>
+    <div class="field"><label for="current">سعرك الحالي قبل الخصم، شامل الضريبة</label><input id="current" type="number" inputmode="decimal" min="0" step="0.5" data-k="current"></div>
+    <div class="ro">
+      <div class="rbox"><span class="l">المحوّل لك</span><span class="v" id="out-curpay">—</span></div>
+      <div class="rbox"><span class="l">صافي ربحك</span><span class="v" id="out-cur">—</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <details class="adv">
+      <summary>إعدادات متقدمة</summary>
+      <div class="grid">
+        <div class="field"><label for="vat">ضريبة القيمة المضافة %</label><input id="vat" type="number" inputmode="decimal" min="0" step="0.5" data-k="vat"></div>
+        <div class="field"><label for="base">تُحسب العمولة على</label>
+          <select id="base" data-k="base"><option value="incl">سعر العميل شامل الضريبة</option><option value="ex">سعر العميل بدون الضريبة</option></select></div>
+        <div class="field wide"><label for="shipDeduct">الشحن</label>
+          <select id="shipDeduct" data-k="shipDeduct"><option value="yes">تخصمه المنصة من المبلغ المحوّل</option><option value="no">لا تخصمه المنصة من المحوّل (يظهر منفصلاً)</option></select></div>
+        <div class="field wide"><label for="commVat">ضريبة العمولة</label>
+          <select id="commVat" data-k="commVat"><option value="rec">مستردة (أنا مسجّل في الضريبة ولدي فاتورة)</option><option value="cost">تكلفة عليّ (غير مستردة)</option></select></div>
+      </div>
+      <p class="small muted" style="margin-block-start:12px">طريقة الحساب: نأخذ المبلغ المحوّل، ونستخرج منه الضريبة بالقسمة على (1 + الضريبة)، ثم نخصم التكلفة والشحن بدون ضريبة. تصح هذه الطريقة للمتجر المسجّل في الضريبة ولديه فواتير ضريبية للتكلفة والشحن والعمولة. دعم المنصة للخصم يُحسب ضمن ما تستلمه ويخضع للضريبة، وراجع محاسبك لتأكيد ذلك.</p>
+    </details>
+  </section>
+  <p class="small muted">القيم الأولية هي مثال ترنديول: بيع 157، تكلفة 115 شاملة، شحن 17 شامل، عمولة 15%. تُحفظ أرقامك في هذا المتصفح فقط، ويمكنك نسخها احتياطياً من الصفحة الرئيسية.</p>
+</div>
+<script src="store.js"></script>
+<script src="calc.js"></script>
+<script>
+(function () {
+  var calc = Calc.calc, priceFor = Calc.priceFor, model = Calc.model;
+  var st = { entry: 'incl', buy: 115, ship: 17, commMode: 'pct', commPct: 15, commAmt: 0, support: 35, disc: 0, target: 20, current: 157, vat: 15, base: 'incl', shipDeduct: 'no', commVat: 'rec' };
+  var o = Store.read('pricing', null);
+  if (o && typeof o === 'object') Object.keys(st).forEach(function (k) { if (o[k] !== undefined) st[k] = o[k]; });
+  function save() { Store.write('pricing', st); }
+
+  var $ = function (id) { return document.getElementById(id); };
+  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : 0; }
+  function round2(x) { return Math.round(x * 100) / 100; }
+  function fmt(n) {
+    if (!isFinite(n)) return '—';
+    if (Math.abs(n) < 0.005) n = 0;
+    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function n2(n) { return '<span class="num">' + fmt(n) + '</span>'; }
+  function cls(n) { return n > 0.005 ? 'pos' : n < -0.005 ? 'neg' : ''; }
+
+  ['buy', 'ship', 'support', 'disc', 'target', 'current', 'vat'].forEach(function (k) { $(k).value = st[k]; });
+  $('base').value = st.base;
+  $('shipDeduct').value = st.shipDeduct;
+  $('commVat').value = st.commVat;
+
+  function syncEntry() {
+    var incl = st.entry === 'incl';
+    $('buy-lbl').textContent = incl ? 'تكلفة المنتج شاملة الضريبة (ر.س)' : 'تكلفة المنتج بدون ضريبة (ر.س)';
+    $('ship-lbl').textContent = incl ? 'الشحن شامل الضريبة (ر.س)' : 'الشحن بدون ضريبة (ر.س)';
+    var chips = document.querySelectorAll('#entrymode .chip');
+    for (var c = 0; c < chips.length; c++) chips[c].setAttribute('aria-pressed', String(chips[c].getAttribute('data-e') === st.entry));
+  }
+  function syncComm() {
+    var amt = st.commMode === 'amt';
+    $('comm').value = amt ? st.commAmt : st.commPct;
+    $('comm').step = amt ? '0.1' : '0.5';
+    $('comm-in-lbl').textContent = amt ? 'مبلغ العمولة بدون ضريبة (ر.س)' : 'نسبة العمولة % من سعر العميل';
+    var chips = document.querySelectorAll('#commmode .chip');
+    for (var c = 0; c < chips.length; c++) chips[c].setAttribute('aria-pressed', String(chips[c].getAttribute('data-m') === st.commMode));
+  }
+  syncEntry(); syncComm();
+
+  function update() {
+    var m = model(st);
+    var v = st.vat / 100;
+    var d = Math.min(Math.max(st.disc, 0), 95);
+    $('disc-hint').hidden = !(st.disc > 95);
+    var dch = document.querySelectorAll('#chips .chip');
+    for (var c = 0; c < dch.length; c++) dch[c].setAttribute('aria-pressed', String(num(dch[c].getAttribute('data-d')) === d));
+
+    /* cost and shipping readouts */
+    $('ro-buy-ex').innerHTML = n2(m.buy); $('ro-buy-vat').innerHTML = n2(m.buy * v); $('ro-buy-inc').innerHTML = n2(m.buy * (1 + v));
+    $('ro-ship-ex').innerHTML = n2(m.shipNet); $('ro-ship-vat').innerHTML = n2(m.shipNet * v); $('ro-ship-inc').innerHTML = n2(m.shipNet * (1 + v));
+
+    var L = priceFor(m, d, st.target);
+    var ok = isFinite(L);
+    $('out-warn').hidden = ok;
+    var r = ok ? calc(m, L, d) : calc(m, 0, d);
+
+    $('ro-comm').innerHTML = ok ? n2(r.comm) + ' ر.س' : '—';
+    $('ro-commvat').innerHTML = ok ? n2(r.vatComm) + ' ر.س' : '—';
+    $('ro-subs').innerHTML = ok ? n2(r.subsidy) + ' ر.س' : '—';
+    $('ro-mine').innerHTML = ok ? n2(r.mine) + ' ر.س' : '—';
+
+    $('out-price').innerHTML = ok ? n2(L) + ' <small>ر.س</small>' : '—';
+    $('out-payout').innerHTML = ok ? n2(r.payout) + ' <small>ر.س</small>' : '—';
+    if (ok) {
+      $('out-cust').innerHTML = d > 0 ? 'يدفع العميل بعد خصم ' + d + '%: ' + n2(r.F) + ' ر.س' : 'بدون خصم، يدفع العميل هذا السعر.';
+      var Lr = Math.ceil(L - 1e-9), rr = calc(m, Lr, d);
+      $('out-round').innerHTML = 'سعر عملي مقرّب لأعلى: <strong>' + n2(Lr) + ' ر.س</strong>. يُحوَّل لك ' + n2(rr.payout) + ' ر.س، وربحك ' + n2(rr.net) + ' ر.س.';
+
+      var cm = st.commMode === 'amt' ? 'مبلغ ثابت' : st.commPct + '% من سعر العميل';
+      var div = (1 + v).toFixed(2);
+      var rows =
+        '<tr class="grp"><td colspan="2">السعر والحملة</td></tr>' +
+        '<tr><td>السعر المقترح قبل الخصم</td><td class="v">' + n2(r.L) + '</td></tr>' +
+        '<tr><td>خصم الحملة (' + d + '%)</td><td class="v">' + n2(-r.D) + '</td></tr>' +
+        '<tr class="key"><td>سعر البيع الفعلي للعميل</td><td class="v">' + n2(r.F) + '</td></tr>' +
+        '<tr><td>ما تدفعه المنصة من الخصم (' + st.support + '%)</td><td class="v">' + n2(r.subsidy) + '</td></tr>' +
+        '<tr class="key"><td>إجمالي ما تستلمه شامل الضريبة</td><td class="v">' + n2(r.E) + '</td></tr>' +
+        '<tr class="note"><td colspan="2">حصتك من الخصم ' + fmt(r.mine) + ' ر.س.</td></tr>' +
+        '<tr class="grp"><td colspan="2">المبلغ المحوّل لك</td></tr>' +
+        '<tr><td>عمولة المنصة (' + cm + ')</td><td class="v">' + n2(-r.comm) + '</td></tr>' +
+        '<tr><td>القيمة المضافة على العمولة (' + st.vat + '%)</td><td class="v">' + n2(-r.vatComm) + '</td></tr>' +
+        (r.deducted
+          ? '<tr><td>الشحن بدون ضريبة</td><td class="v">' + n2(-r.shipNet) + '</td></tr>' +
+            '<tr><td>القيمة المضافة على الشحن</td><td class="v">' + n2(-r.shipVat) + '</td></tr>'
+          : '') +
+        '<tr class="pay"><td>المبلغ المحوّل لك</td><td class="v">' + n2(r.payout) + '</td></tr>' +
+        '<tr class="grp"><td colspan="2">الربح: استخراج الضريبة ثم خصم التكاليف</td></tr>' +
+        '<tr><td>المبلغ المحوّل لك</td><td class="v">' + n2(r.payout) + '</td></tr>' +
+        '<tr><td>الضريبة المستخرجة (÷ ' + div + ')</td><td class="v">' + n2(-r.vatExtracted) + '</td></tr>' +
+        '<tr class="key"><td>المبلغ بعد استخراج الضريبة</td><td class="v">' + n2(r.stripped) + '</td></tr>' +
+        '<tr class="note"><td colspan="2">الضريبة المستخرجة ' + fmt(r.vatExtracted) + ' = ضريبة المبيعات ' + fmt(r.vatSales) + ' − ضريبة العمولة ' + fmt(r.vatComm) + (r.deducted ? ' − ضريبة الشحن ' + fmt(r.shipVat) : '') + '.</td></tr>' +
+        '<tr><td>تكلفة المنتج بدون ضريبة</td><td class="v">' + n2(-m.buy) + '</td></tr>' +
+        (r.deducted
+          ? '<tr class="note"><td colspan="2">الشحن مخصوم مسبقاً من المبلغ المحوّل.</td></tr>'
+          : '<tr><td>الشحن بدون ضريبة</td><td class="v">' + n2(-r.shipNet) + '</td></tr>') +
+        (r.commVatRec ? '' : '<tr><td>ضريبة العمولة (غير مستردة)</td><td class="v">' + n2(-r.vatComm) + '</td></tr>') +
+        '<tr class="final"><td>صافي الربح للقطعة</td><td class="v ' + cls(r.net) + '">' + n2(r.net) + '</td></tr>';
+      $('steps').innerHTML = rows;
+    } else {
+      $('out-cust').textContent = ''; $('out-round').textContent = '';
+      $('steps').innerHTML = '<tr><td class="muted">لا توجد نتيجة لعرضها.</td></tr>';
+    }
+
+    var levels = [0, 5, 10, 20, 30];
+    if (levels.indexOf(d) < 0) levels.push(d);
+    levels.sort(function (a, b) { return a - b; });
+    $('cmp').innerHTML = levels.map(function (x) {
+      var p = priceFor(m, x, st.target);
+      var q = isFinite(p) ? calc(m, p, x) : null;
+      return '<tr' + (x === d ? ' class="sel"' : '') + '><td>' + x + '%</td><td class="v">' + n2(p) + '</td><td class="v">' + n2(q ? q.F : NaN) + '</td><td class="v">' + n2(q ? q.payout : NaN) + '</td></tr>';
+    }).join('');
+
+    if (st.current > 0) {
+      var cr = calc(m, st.current, d);
+      $('out-cur').className = 'v ' + cls(cr.net);
+      $('out-cur').innerHTML = n2(cr.net) + ' ر.س';
+      $('out-curpay').innerHTML = n2(cr.payout) + ' ر.س';
+    } else {
+      $('out-cur').className = 'v'; $('out-cur').textContent = '—';
+      $('out-curpay').textContent = '—';
+    }
+  }
+
+  document.querySelector('.wrap').addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.id === 'comm') {
+      st[st.commMode === 'amt' ? 'commAmt' : 'commPct'] = num(t.value);
+      save(); update(); return;
+    }
+    var k = t.getAttribute('data-k');
+    if (!k) return;
+    st[k] = (k === 'base' || k === 'shipDeduct' || k === 'commVat') ? t.value : num(t.value);
+    save(); update();
+  });
+  $('chips').addEventListener('click', function (e) {
+    var b = e.target.closest('.chip');
+    if (!b) return;
+    st.disc = num(b.getAttribute('data-d'));
+    $('disc').value = st.disc;
+    save(); update();
+  });
+  $('commmode').addEventListener('click', function (e) {
+    var b = e.target.closest('.chip');
+    if (!b) return;
+    st.commMode = b.getAttribute('data-m');
+    syncComm(); save(); update();
+  });
+  $('entrymode').addEventListener('click', function (e) {
+    var b = e.target.closest('.chip');
+    if (!b) return;
+    var to = b.getAttribute('data-e');
+    if (to === st.entry) return;
+    var f = 1 + st.vat / 100;
+    st.buy = round2(to === 'incl' ? st.buy * f : st.buy / f);
+    st.ship = round2(to === 'incl' ? st.ship * f : st.ship / f);
+    st.entry = to;
+    $('buy').value = st.buy; $('ship').value = st.ship;
+    syncEntry(); save(); update();
+  });
+
+  /* ---------- ربط المخزون ---------- */
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function invMsg(t) { $('invmsg').textContent = t; }
+  function loadInv() { var s = Store.read('inventory', null); return s && Array.isArray(s.products) ? s : null; }
+  function renderInv() {
+    var s = loadInv(), ps = s ? s.products : [], sel = $('invsel'), keep = sel.value;
+    sel.disabled = $('invfill').disabled = $('invapprove').disabled = !ps.length;
+    sel.innerHTML = ps.length
+      ? ps.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.name) + ' (' + esc(p.sku) + ')</option>'; }).join('')
+      : '<option>لا توجد منتجات. افتح صفحة المخزون أولاً</option>';
+    if (keep) sel.value = keep;
+  }
+  function pick() {
+    var s = loadInv(); if (!s) return null;
+    var p = s.products.filter(function (x) { return x.id === $('invsel').value; })[0];
+    return p ? { s: s, p: p } : null;
+  }
+  $('invfill').addEventListener('click', function () {
+    var h = pick(); if (!h) return;
+    if (st.entry === 'incl') st.ship = round2(st.ship / (1 + st.vat / 100));
+    st.entry = 'ex'; st.buy = h.p.buy;
+    $('buy').value = st.buy; $('ship').value = st.ship;
+    syncEntry(); save(); update();
+    invMsg('أُخذت تكلفة «' + h.p.name + '»: ' + fmt(h.p.buy) + ' ر.س بدون ضريبة. صارت الخانات تُدخل بدون ضريبة.');
+  });
+  $('invapprove').addEventListener('click', function () {
+    var h = pick(); if (!h) return;
+    var m = model(st), d = Math.min(Math.max(st.disc, 0), 95), L = priceFor(m, d, st.target);
+    if (!isFinite(L)) { invMsg('لا يوجد سعر مقترح لاعتماده. راجع العمولة والخصم.'); return; }
+    h.p.price = Math.ceil(L - 1e-9);
+    Store.write('inventory', h.s);
+    invMsg('حُفظ سعر «' + h.p.name + '» في المخزون: ' + fmt(h.p.price) + ' ر.س شامل الضريبة قبل الخصم.');
+  });
+  Store.onChange(function (n) { if (n === 'inventory') renderInv(); });
+  renderInv();
+
+  update();
+})();
+</script>
+</body>
+</html>

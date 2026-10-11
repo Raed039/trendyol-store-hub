@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مخزون المتجر</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+* { box-sizing: border-box; }
+.wrap { max-width: 1080px; margin-inline: auto; padding-inline: 16px; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 16px; }
+h1, h2 { font-family: var(--font-display); font-weight: 600; margin: 0; text-wrap: balance; }
+h1 { font-size: 1.5rem; line-height: 1.3; }
+h2 { font-size: 1rem; }
+p { margin: 0; }
+a { color: var(--accent); }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.num { direction: ltr; unicode-bidi: isolate; display: inline-block; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+header { display: flex; flex-direction: column; gap: 4px; }
+header p { color: var(--muted); max-width: 65ch; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.pad { padding: 14px 16px; }
+
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label, .lbl { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+input, select, textarea { font: inherit; color: var(--ink); }
+.field input, .field select, .tb-search, .tb-sort {
+  width: 100%; height: 42px; padding-inline: 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--field); font-size: 1rem;
+}
+input[type="number"] { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+.btn {
+  height: 42px; padding-inline: 16px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); white-space: nowrap;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.sm { height: 36px; padding-inline: 12px; font-size: 0.9rem; }
+.btn.danger { color: var(--out); }
+.btn.armed { background: var(--out); border-color: var(--out); color: var(--surface); }
+
+.toolbar { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+@media (min-width: 720px) { .toolbar { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); } }
+.tb-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  height: 40px; padding-inline: 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.chip .n { font-variant-numeric: tabular-nums; background: var(--field); border-radius: 999px; padding-inline: 8px; font-size: 0.85rem; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip[aria-pressed="true"] .n { background: rgba(255,255,255,0.22); color: inherit; }
+.chip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.chip i.out { background: var(--out); } .chip i.low { background: var(--low); } .chip i.ok { background: var(--ok); }
+
+.value { display: flex; flex-wrap: wrap; gap: 6px 22px; color: var(--muted); }
+.value strong { color: var(--ink); font-family: var(--font-display); }
+
+.demo { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; background: var(--low-bg); border-color: var(--low); color: var(--ink); }
+#status { min-height: 1.4em; color: var(--muted); font-size: 0.88rem; }
+
+/* list */
+.head { display: none; }
+.rows { display: flex; flex-direction: column; gap: 10px; }
+.item { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); border-inline-start-width: 5px; overflow: hidden; }
+.item.s-out { border-inline-start-color: var(--out); }
+.item.s-low { border-inline-start-color: var(--low); }
+.item.s-ok { border-inline-start-color: var(--ok); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px 14px; align-items: center; }
+.cell { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cl { font-size: 0.75rem; color: var(--muted); }
+.pname { font-weight: 600; overflow-wrap: anywhere; }
+.pdesc { font-size: 0.85rem; color: var(--muted); overflow-wrap: anywhere; }
+.sku { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; direction: ltr; unicode-bidi: isolate; text-align: right; overflow-wrap: anywhere; font-size: 0.9rem; }
+.qtyline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.qty { font-family: var(--font-display); font-weight: 600; font-size: 1.5rem; line-height: 1.2; }
+.pill { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+.pill.out { background: var(--out-bg); color: var(--out); }
+.pill.low { background: var(--low-bg); color: var(--low); }
+.pill.ok { background: var(--ok-bg); color: var(--ok); }
+.upd { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.upd input { width: 74px; height: 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--field); padding-inline: 8px; font-size: 1rem; }
+.btn.add { border-color: var(--ok); color: var(--ok); }
+.btn.sub { border-color: var(--out); color: var(--out); }
+.edit { border-top: 1px solid var(--line); background: var(--field); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.fgrid .wide { grid-column: 1 / -1; }
+@media (min-width: 720px) { .fgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .fgrid .w2 { grid-column: span 2; } }
+.fgrid .field input { background: var(--surface); }
+.fbtns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+@media (min-width: 900px) {
+  .head, .row { grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1.15fr) minmax(0, 1.9fr) auto; gap: 14px; }
+  .head { display: grid; padding: 0 19px 0 14px; color: var(--muted); font-size: 0.78rem; font-weight: 500; }
+  .cl { display: none; }
+}
+
+.empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+details.panel summary { cursor: pointer; font-weight: 600; padding: 14px 16px; }
+details.panel .inner { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+textarea.big { width: 100%; min-height: 120px; border-radius: 8px; border: 1px solid var(--line); background: var(--field); padding: 8px; direction: ltr; font-size: 0.88rem; }
+.log { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.log li { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 0.88rem; border-bottom: 1px dashed var(--line); padding-bottom: 6px; }
+.log .d { color: var(--muted); }
+.plus { color: var(--ok); font-weight: 600; } .minus { color: var(--out); font-weight: 600; }
+</style>
+</head>
+<body>
+<script src="nav.js"></script>
+<div class="wrap" dir="rtl" lang="ar">
+  <header>
+    <h1>مخزون المتجر</h1>
+    <p>تابع الكميات، وحدّثها بضغطة، واعرف المنتجات التي تقترب من النفاد قبل أن تتوقف مبيعاتك على نون وترنديول. الأسعار بالريال السعودي.</p>
+  </header>
+
+  <div class="card pad demo" id="demo" hidden>
+    <span>المنتجات الظاهرة أمثلة تجريبية لتجربة الأداة.</span>
+    <span style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn sm primary" id="demo-clear" type="button">ابدأ بقائمة فارغة</button>
+      <button class="btn sm" id="demo-keep" type="button">أبقِ الأمثلة</button>
+    </span>
+  </div>
+
+  <section class="card pad" aria-label="التصفية والأدوات" style="display:flex;flex-direction:column;gap:12px">
+    <div class="toolbar">
+      <input class="tb-search" id="q" type="search" placeholder="ابحث بالاسم أو الكود" aria-label="بحث">
+      <select class="tb-sort" id="sort" aria-label="ترتيب القائمة">
+        <option value="need">الأحوج للتوريد أولاً</option>
+        <option value="name">الاسم</option>
+        <option value="qtyAsc">الكمية: من الأقل</option>
+        <option value="qtyDesc">الكمية: من الأكثر</option>
+        <option value="val">قيمة المخزون: من الأعلى</option>
+      </select>
+    </div>
+    <div class="chips" role="group" aria-label="تصفية حسب الحالة" id="filters"></div>
+    <div class="value" id="value"></div>
+    <div class="tb-actions">
+      <button class="btn primary" id="btn-add" type="button">إضافة منتج</button>
+      <button class="btn" id="btn-copy" type="button">نسخ الجدول للإكسل</button>
+      <button class="btn" id="btn-short" type="button">نسخ قائمة النواقص</button>
+    </div>
+    <div id="status" role="status" aria-live="polite"></div>
+    <div id="fallback-box" hidden><textarea class="big" id="fallback" readonly aria-label="النص للنسخ"></textarea></div>
+  </section>
+
+  <section class="card" id="add-card" hidden aria-label="إضافة منتج">
+    <div class="edit" style="border-top:0;background:transparent">
+      <h2>منتج جديد</h2>
+      <div class="fgrid" id="add-form"></div>
+      <div class="fbtns">
+        <button class="btn primary" id="add-save" type="button">حفظ المنتج</button>
+        <button class="btn" id="add-cancel" type="button">إلغاء</button>
+      </div>
+      <p class="small" id="add-msg" style="color:var(--out)" hidden></p>
+    </div>
+  </section>
+
+  <div>
+    <div class="head" aria-hidden="true">
+      <span>المنتج</span><span>الكود (SKU)</span><span>الكمية والحالة</span><span>الأسعار</span><span>تحديث فوري</span><span></span>
+    </div>
+    <div class="rows" id="rows"></div>
+  </div>
+
+  <section class="card">
+    <details class="panel">
+      <summary>استيراد من الإكسل</summary>
+      <div class="inner">
+        <p class="small muted">الصق أسطراً منسوخة من الإكسل بالترتيب: الاسم، الوصف، الكود، الكمية، حد إعادة الطلب، سعر الشراء بدون ضريبة، سعر البيع شامل الضريبة. إن كان الكود موجوداً تُحدَّث بياناته، وإلا يُضاف منتج جديد. لا يُحذف شيء.</p>
+        <textarea class="big" id="imp" aria-label="الصق بيانات الإكسل هنا" placeholder="شاحن 30W&#9;رأس فقط&#9;CH-30W-01&#9;40&#9;15&#9;15&#9;69"></textarea>
+        <div><button class="btn primary" id="imp-go" type="button">استيراد</button></div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card">
+    <details class="panel">
+      <summary>سجل آخر الحركات</summary>
+      <div class="inner"><ul class="log" id="log"></ul></div>
+    </details>
+  </section>
+
+  <p class="small muted">تُحفظ البيانات في هذا المتصفح فقط، فانسخ نسخة احتياطية من <a href="index.html">الصفحة الرئيسية</a> بين وقت وآخر. الطلبات التي تصل لحالة «تم الشحن» تخصم من هنا تلقائياً (<a href="orders.html">صفحة الطلبات</a>)، وأسعار البيع المستهدفة تعتمدها من <a href="pricing.html">أداة التسعير</a>.</p>
+</div>
+<script src="store.js"></script>
+<script src="logic.js"></script>
+<script>
+(function () {
+  var toLatin = Inv.toLatin, parseNum = Inv.parseNum, statusOf = Inv.statusOf, sortProducts = Inv.sortProducts,
+      parseImport = Inv.parseImport, toTSV = Inv.toTSV, shortageList = Inv.shortageList;
+  var uid = function () { return 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
+
+  function seed() {
+    return {
+      demo: true,
+      products: [
+        { id: uid(), name: 'شاحن جداري سريع 30W', desc: 'منفذ USB-C بتقنية PD، رأس الشاحن فقط', sku: 'CH-30W-01', qty: 42, min: 15, buy: 15, price: 69 },
+        { id: uid(), name: 'كيبل آيفون قماشي 1م', desc: 'Lightning مضفّر، أسود', sku: 'CB-IP-1M-BK', qty: 9, min: 20, buy: 4, price: 29 },
+        { id: uid(), name: 'سماعة بلوتوث لاسلكية', desc: 'بلوتوث 5.3 مع علبة شحن', sku: 'EB-BT-53', qty: 0, min: 8, buy: 25, price: 119 },
+        { id: uid(), name: 'حماية شاشة زجاج', desc: 'لجوال 6.1 بوصة، شفافة', sku: 'SP-GL-61', qty: 120, min: 30, buy: 2.5, price: 19 },
+        { id: uid(), name: 'جراب سيليكون', desc: 'ناعم مع حماية للكاميرا', sku: 'CS-SIL-61-BL', qty: 18, min: 15, buy: 6, price: 39 }
+      ],
+      log: []
+    };
+  }
+  var state;
+  var saved = Store.read('inventory', null);
+  var fresh = !(saved && Array.isArray(saved.products));
+  state = fresh ? seed() : saved;
+  if (!Array.isArray(state.log)) state.log = [];
+  function save() { Store.write('inventory', state); }
+  if (fresh) save();
+
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function money(n) { return (isFinite(n) ? n : 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function int(n) { return (isFinite(n) ? n : 0).toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+  function nn(n) { return '<span class="num">' + n + '</span>'; }
+
+  var ui = { filter: 'all', q: '', sort: 'need', editing: null, amt: {} };
+  var LABEL = { out: 'نفد', low: 'يقترب من النفاد', ok: 'متوفر' };
+  var stEl = $('status');
+  function say(t) { stEl.textContent = t; }
+
+  /* ---------- summary: filters and value ---------- */
+  function renderSummary() {
+    var c = { all: state.products.length, out: 0, low: 0, ok: 0 };
+    var units = 0, val = 0, sell = 0;
+    state.products.forEach(function (p) {
+      c[statusOf(p)]++; units += p.qty; val += p.qty * p.buy; sell += p.qty * (p.price / 1.15);
+    });
+    var defs = [['all', 'الكل', ''], ['out', 'نفد', 'out'], ['low', 'يقترب من النفاد', 'low'], ['ok', 'متوفر', 'ok']];
+    $('filters').innerHTML = defs.map(function (d) {
+      return '<button type="button" class="chip" data-f="' + d[0] + '" aria-pressed="' + (ui.filter === d[0]) + '">' +
+        (d[2] ? '<i class="' + d[2] + '"></i>' : '') + d[1] + ' <span class="n">' + c[d[0]] + '</span></button>';
+    }).join('');
+    $('value').innerHTML =
+      '<span>إجمالي القطع <strong>' + nn(int(units)) + '</strong></span>' +
+      '<span>قيمة المخزون بسعر الشراء <strong>' + nn(money(val)) + '</strong> ر.س</span>' +
+      '<span>قيمته بسعر البيع بدون ضريبة <strong>' + nn(money(sell)) + '</strong> ر.س</span>';
+  }
+
+  /* ---------- form ---------- */
+  function formHtml(pre, p) {
+    p = p || { name: '', desc: '', sku: '', qty: 0, min: 5, buy: 0, price: 0 };
+    var f = function (k, label, type, extra, cls) {
+      return '<div class="field ' + (cls || '') + '"><label for="' + pre + k + '">' + label + '</label><input id="' + pre + k + '" type="' + type + '" ' + (extra || '') + ' value="' + esc(p[k]) + '"></div>';
+    };
+    return f('name', 'اسم المنتج', 'text', '', 'w2') + f('sku', 'الكود أو الباركود (SKU)', 'text', 'dir="ltr" autocapitalize="characters"', 'w2') +
+      f('desc', 'وصف مختصر', 'text', '', 'wide') +
+      f('qty', 'الكمية الحالية', 'number', 'inputmode="numeric" min="0" step="1"') +
+      f('min', 'حد إعادة الطلب', 'number', 'inputmode="numeric" min="0" step="1"') +
+      f('buy', 'سعر الشراء بدون ضريبة (ر.س)', 'number', 'inputmode="decimal" min="0" step="0.01"') +
+      f('price', 'سعر البيع المستهدف شامل الضريبة (ر.س)', 'number', 'inputmode="decimal" min="0" step="0.5"');
+  }
+  function readForm(pre) {
+    var g = function (k) { return $(pre + k).value; };
+    var q = parseNum(g('qty')), m = parseNum(g('min')), b = parseNum(g('buy')), pr = parseNum(g('price'));
+    return {
+      name: g('name').trim(), desc: g('desc').trim(), sku: g('sku').trim(),
+      qty: isFinite(q) ? Math.max(0, Math.round(q)) : 0, min: isFinite(m) ? Math.max(0, Math.round(m)) : 0,
+      buy: isFinite(b) ? Math.max(0, b) : 0, price: isFinite(pr) ? Math.max(0, pr) : 0
+    };
+  }
+  function skuTaken(sku, exceptId) {
+    var s = sku.toLowerCase();
+    return state.products.some(function (p) { return p.id !== exceptId && p.sku.toLowerCase() === s; });
+  }
+
+  /* ---------- list ---------- */
+  function visible() {
+    var q = toLatin(ui.q).trim().toLowerCase();
+    var list = state.products.filter(function (p) {
+      if (ui.filter !== 'all' && statusOf(p) !== ui.filter) return false;
+      if (!q) return true;
+      return (p.name + ' ' + p.sku + ' ' + p.desc).toLowerCase().indexOf(q) >= 0;
+    });
+    return sortProducts(list, ui.sort);
+  }
+  function rowHtml(p) {
+    var s = statusOf(p);
+    var amt = ui.amt[p.id] === undefined ? 1 : ui.amt[p.id];
+    var html =
+      '<div class="item s-' + s + '" data-id="' + p.id + '"><div class="row">' +
+        '<div class="cell"><span class="pname">' + esc(p.name) + '</span><span class="pdesc">' + esc(p.desc) + '</span></div>' +
+        '<div class="cell"><span class="cl">الكود</span><span class="sku">' + esc(p.sku) + '</span></div>' +
+        '<div class="cell"><span class="cl">الكمية والحالة</span><div class="qtyline"><span class="qty">' + nn(int(p.qty)) + '</span><span class="pill ' + s + '">' + LABEL[s] + '</span></div>' +
+          '<span class="small muted">حد إعادة الطلب ' + nn(int(p.min)) + '</span></div>' +
+        '<div class="cell"><span class="cl">الأسعار</span><span class="small">شراء ' + nn(money(p.buy)) + ' بدون ضريبة</span><span class="small">بيع ' + nn(money(p.price)) + ' شامل</span></div>' +
+        '<div class="cell"><span class="cl">تحديث فوري</span><div class="upd">' +
+          '<input type="number" inputmode="numeric" min="1" step="1" value="' + esc(amt) + '" data-amt="' + p.id + '" aria-label="الكمية للتحديث: ' + esc(p.name) + '">' +
+          '<button type="button" class="btn sm add" data-act="plus" data-id="' + p.id + '" aria-label="إضافة كمية إلى ' + esc(p.name) + '">+ توريد</button>' +
+          '<button type="button" class="btn sm sub" data-act="minus" data-id="' + p.id + '" aria-label="خصم كمية مباعة من ' + esc(p.name) + '">− بيع</button></div></div>' +
+        '<div class="cell"><button type="button" class="btn sm" data-act="edit" data-id="' + p.id + '">' + (ui.editing === p.id ? 'إغلاق' : 'تعديل') + '</button></div>' +
+      '</div>';
+    if (ui.editing === p.id) {
+      html += '<div class="edit"><div class="fgrid">' + formHtml('e-', p) + '</div><div class="fbtns">' +
+        '<button type="button" class="btn primary sm" data-act="save" data-id="' + p.id + '">حفظ التعديل</button>' +
+        '<button type="button" class="btn sm" data-act="close">إلغاء</button>' +
+        '<button type="button" class="btn sm danger" data-act="del" data-id="' + p.id + '">حذف المنتج</button></div>' +
+        '<p class="small" id="edit-msg" style="color:var(--out)" hidden></p></div>';
+    }
+    return html + '</div>';
+  }
+  function renderRows() {
+    var list = visible();
+    if (!state.products.length) {
+      $('rows').innerHTML = '<div class="card empty">لا توجد منتجات بعد. اضغط «إضافة منتج» أو استورد من الإكسل.</div>';
+    } else if (!list.length) {
+      $('rows').innerHTML = '<div class="card empty">لا توجد منتجات تطابق البحث أو التصفية.</div>';
+    } else {
+      $('rows').innerHTML = list.map(rowHtml).join('');
+    }
+  }
+  function renderLog() {
+    var l = state.log.slice(0, 20);
+    $('log').innerHTML = l.length ? l.map(function (e) {
+      var d = new Date(e.t);
+      var ds = isNaN(d) ? '' : d.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      return '<li><span class="d">' + nn(ds) + '</span><strong>' + esc(e.name) + '</strong><span class="' + (e.delta > 0 ? 'plus' : 'minus') + '">' + nn((e.delta > 0 ? '+' : '') + e.delta) + '</span><span class="muted">الرصيد ' + nn(e.after) + '</span>' + (e.note ? '<span class="muted">' + esc(e.note) + '</span>' : '') + '</li>';
+    }).join('') : '<li class="muted">لا توجد حركات بعد.</li>';
+  }
+  function renderAll() {
+    $('demo').hidden = !state.demo;
+    renderSummary(); renderRows(); renderLog();
+  }
+
+  /* ---------- actions ---------- */
+  function find(id) { return state.products.find(function (p) { return p.id === id; }); }
+  function adjust(id, sign) {
+    var p = find(id); if (!p) return;
+    var a = Math.round(parseNum(ui.amt[id] === undefined ? 1 : ui.amt[id]));
+    if (!isFinite(a) || a < 1) { say('اكتب كمية صحيحة أكبر من صفر.'); return; }
+    if (sign < 0 && a > p.qty) { say('لا يمكن خصم ' + a + ' قطعة، المتوفر من «' + p.name + '» ' + p.qty + ' فقط.'); return; }
+    p.qty += sign * a;
+    state.log.unshift({ t: Date.now(), name: p.name, sku: p.sku, delta: sign * a, after: p.qty });
+    state.log = state.log.slice(0, 100);
+    ui.amt[id] = 1;
+    save(); renderAll();
+    say((sign > 0 ? 'أُضيف ' : 'خُصم ') + a + ' إلى «' + p.name + '». الرصيد الآن ' + p.qty + '.');
+  }
+  var armed = null, armTimer = null;
+  $('rows').addEventListener('input', function (e) {
+    var id = e.target.getAttribute('data-amt');
+    if (id) ui.amt[id] = e.target.value;
+  });
+  $('rows').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.getAttribute('data-amt')) { e.preventDefault(); adjust(e.target.getAttribute('data-amt'), 1); }
+  });
+  $('rows').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var act = b.getAttribute('data-act'), id = b.getAttribute('data-id');
+    if (act === 'plus') adjust(id, 1);
+    else if (act === 'minus') adjust(id, -1);
+    else if (act === 'edit') { ui.editing = ui.editing === id ? null : id; renderRows(); }
+    else if (act === 'close') { ui.editing = null; renderRows(); }
+    else if (act === 'save') {
+      var p = find(id), v = readForm('e-'), msg = $('edit-msg');
+      var err = !v.name ? 'اكتب اسم المنتج.' : !v.sku ? 'اكتب الكود (SKU).' : skuTaken(v.sku, id) ? 'هذا الكود مستخدم لمنتج آخر.' : '';
+      if (err) { msg.textContent = err; msg.hidden = false; return; }
+      if (v.qty !== p.qty) state.log.unshift({ t: Date.now(), name: v.name, sku: v.sku, delta: v.qty - p.qty, after: v.qty });
+      Object.assign(p, v); ui.editing = null; save(); renderAll(); say('تم حفظ تعديلات «' + p.name + '».');
+    }
+    else if (act === 'del') {
+      if (armed === id) {
+        var gone = find(id); state.products = state.products.filter(function (x) { return x.id !== id; });
+        armed = null; ui.editing = null; save(); renderAll(); say('حُذف «' + gone.name + '».');
+      } else {
+        armed = id; b.textContent = 'اضغط للتأكيد'; b.classList.add('armed');
+        clearTimeout(armTimer);
+        armTimer = setTimeout(function () { armed = null; b.textContent = 'حذف المنتج'; b.classList.remove('armed'); }, 3000);
+      }
+    }
+  });
+
+  $('filters').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-f]'); if (!b) return;
+    ui.filter = b.getAttribute('data-f'); renderSummary(); renderRows();
+  });
+  $('q').addEventListener('input', function (e) { ui.q = e.target.value; renderRows(); });
+  $('sort').addEventListener('change', function (e) { ui.sort = e.target.value; renderRows(); });
+
+  /* add product */
+  $('btn-add').addEventListener('click', function () {
+    var card = $('add-card');
+    card.hidden = !card.hidden;
+    if (!card.hidden) { $('add-form').innerHTML = formHtml('a-'); $('add-msg').hidden = true; $('a-name').focus(); card.scrollIntoView({ block: 'center' }); }
+  });
+  $('add-cancel').addEventListener('click', function () { $('add-card').hidden = true; });
+  $('add-save').addEventListener('click', function () {
+    var v = readForm('a-'), msg = $('add-msg');
+    var err = !v.name ? 'اكتب اسم المنتج.' : !v.sku ? 'اكتب الكود (SKU).' : skuTaken(v.sku, null) ? 'هذا الكود موجود. استخدم كوداً مختلفاً أو عدّل المنتج الموجود.' : '';
+    if (err) { msg.textContent = err; msg.hidden = false; return; }
+    v.id = uid(); state.products.push(v);
+    if (v.qty > 0) state.log.unshift({ t: Date.now(), name: v.name, sku: v.sku, delta: v.qty, after: v.qty });
+    $('add-card').hidden = true; save(); renderAll(); say('أُضيف «' + v.name + '».');
+  });
+
+  /* demo banner */
+  $('demo-clear').addEventListener('click', function () { state.products = []; state.log = []; state.demo = false; save(); renderAll(); say('بدأت بقائمة فارغة.'); });
+  $('demo-keep').addEventListener('click', function () { state.demo = false; save(); renderAll(); });
+
+  /* copy / import */
+  function copyText(text, okMsg) {
+    var box = $('fallback-box'), ta = $('fallback');
+    var fb = function () { box.hidden = false; ta.value = text; ta.focus(); ta.select(); say('تعذّر النسخ تلقائياً. حدّدنا لك النص، انسخه يدوياً.'); };
+    try {
+      navigator.clipboard.writeText(text).then(function () { box.hidden = true; say(okMsg); }, fb);
+    } catch (err) { fb(); }
+  }
+  $('btn-copy').addEventListener('click', function () {
+    if (!state.products.length) { say('لا توجد منتجات لنسخها.'); return; }
+    copyText(toTSV(sortProducts(state.products, 'name')), 'تم نسخ الجدول. الصقه في الإكسل أو Google Sheets.');
+  });
+  $('btn-short').addEventListener('click', function () {
+    var t = shortageList(state.products);
+    if (!t) { say('لا توجد نواقص الآن. كل المنتجات فوق حد إعادة الطلب.'); return; }
+    copyText(t, 'تم نسخ قائمة النواقص.');
+  });
+  $('imp-go').addEventListener('click', function () {
+    var text = $('imp').value;
+    if (!text.trim()) { say('الصق بيانات الإكسل أولاً.'); return; }
+    var r = parseImport(text, state.products, uid);
+    state.products = r.products; state.demo = false; save(); renderAll();
+    $('imp').value = '';
+    say('اكتمل الاستيراد: أُضيف ' + r.added + '، وتحدّث ' + r.updated + (r.skipped ? '، وتخطّينا ' + r.skipped + ' سطراً ينقصه الاسم أو الكود أو الكمية' : '') + '.');
+  });
+
+  /* عندما تتغير الكميات من صفحة الطلبات */
+  function reload() {
+    var o = Store.read('inventory', null);
+    if (!(o && Array.isArray(o.products))) return;
+    state = o; if (!Array.isArray(state.log)) state.log = [];
+    ui.editing = null; renderAll();
+  }
+  Store.onChange(function (n) { if (n === 'inventory') reload(); });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) reload(); });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

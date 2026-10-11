@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>أدوات المتجر</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+.wrap { max-width: 860px; }
+h1 { font-size: 1.5rem; line-height: 1.3; }
+h2 { font-size: 1.05rem; }
+header { display: flex; flex-direction: column; gap: 4px; }
+header p { color: var(--muted); max-width: 65ch; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.num { direction: ltr; unicode-bidi: isolate; display: inline-block; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tools { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@media (min-width: 640px) { .tools { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tool { display: flex; flex-direction: column; gap: 6px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); text-decoration: none; }
+.tool:hover { border-color: var(--accent); }
+.tool:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tool h2 { color: var(--accent); }
+.tool p { color: var(--muted); font-size: 0.9rem; }
+.tool .stat { margin-top: auto; padding-top: 6px; font-weight: 600; }
+.stat.bad { color: var(--bad); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { height: 42px; padding-inline: 16px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); white-space: nowrap; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.armed { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+.btn:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+textarea { width: 100%; min-height: 110px; border-radius: 8px; border: 1px solid var(--line); background: var(--field); color: var(--ink); padding: 10px; font: inherit; font-size: 0.85rem; direction: ltr; }
+#status { min-height: 1.4em; color: var(--muted); font-size: 0.9rem; }
+input[type="file"] { font: inherit; max-width: 100%; }
+</style>
+</head>
+<body>
+<script src="nav.js"></script>
+<div class="wrap">
+  <header>
+    <h1>أدوات المتجر</h1>
+    <p>تسعير ومخزون وطلبات وردود خدمة العملاء في مكان واحد. الطلبات المشحونة تخصم من المخزون تلقائياً، والتسعير يأخذ التكلفة من المخزون.</p>
+  </header>
+
+  <div class="tools">
+    <a class="tool" href="pricing.html">
+      <h2>التسعير</h2>
+      <p>اكتب التكلفة والحملة والربح المطلوب، فيظهر السعر المقترح والمبلغ المحوّل لك.</p>
+      <span class="stat" id="st-pricing">احسب سعرك</span>
+    </a>
+    <a class="tool" href="inventory.html">
+      <h2>المخزون</h2>
+      <p>الكميات والنواقص وحد إعادة الطلب، مع استيراد من الإكسل.</p>
+      <span class="stat" id="st-inventory">—</span>
+    </a>
+    <a class="tool" href="orders.html">
+      <h2>الطلبات اليومية</h2>
+      <p>من التجهيز إلى الطباعة إلى التسليم لـ J&amp;T، مع تقرير جاهز للنسخ.</p>
+      <span class="stat" id="st-orders">—</span>
+    </a>
+    <a class="tool" href="templates.html">
+      <h2>خدمة العملاء</h2>
+      <p>الصق رسالة العميل فيقترح لك القالب الأنسب ويعبّئ بيانات الطلب.</p>
+      <span class="stat" id="st-templates">—</span>
+    </a>
+  </div>
+
+  <section class="card" aria-labelledby="h-bk">
+    <h2 id="h-bk">نسخة احتياطية</h2>
+    <p class="small muted">بياناتك محفوظة في هذا المتصفح على هذا الجهاز فقط، وتضيع إن مسحت بيانات المتصفح أو غيّرت الجهاز. احتفظ بنسخة احتياطية من وقت لآخر، وتشمل المخزون والطلبات والتسعير والقوالب.</p>
+    <div class="btns">
+      <button class="btn primary" type="button" id="bk-file">تنزيل ملف النسخة</button>
+      <button class="btn" type="button" id="bk-copy">نسخ النص</button>
+    </div>
+    <h2 style="margin-top:4px">استعادة</h2>
+    <p class="small muted">اختر ملف النسخة أو الصق نصها هنا. الاستعادة تستبدل البيانات الحالية للأقسام الموجودة في النسخة.</p>
+    <input type="file" id="bk-pick" accept=".json,application/json,text/plain" aria-label="اختيار ملف النسخة الاحتياطية">
+    <textarea id="bk" aria-label="نص النسخة الاحتياطية" placeholder="الصق هنا نص النسخة الاحتياطية"></textarea>
+    <div class="btns"><button class="btn" type="button" id="bk-restore">استعادة من النص</button></div>
+    <div id="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <p class="small muted">كل البيانات تبقى في متصفحك ولا تُرسل إلى أي خادم.</p>
+</div>
+
+<script src="store.js"></script>
+<script src="logic.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  function say(t) { $('status').textContent = t; }
+  function nn(n) { return '<span class="num">' + n + '</span>'; }
+
+  function stats() {
+    var inv = Store.read('inventory', null), ords = Store.read('orders', null), tp = Store.read('templates', null);
+    var el = $('st-inventory');
+    if (inv && Array.isArray(inv.products) && inv.products.length) {
+      var low = inv.products.filter(function (p) { return Inv.statusOf(p) !== 'ok'; }).length;
+      el.className = 'stat' + (low ? ' bad' : '');
+      el.innerHTML = low ? nn(low) + ' منتج ناقص أو يقترب من النفاد من ' + nn(inv.products.length) : 'كل ' + nn(inv.products.length) + ' منتج فوق حد إعادة الطلب';
+    } else { el.className = 'stat'; el.textContent = 'لا توجد منتجات بعد'; }
+
+    el = $('st-orders');
+    if (ords && Array.isArray(ords.orders) && ords.orders.length) {
+      var open = ords.orders.filter(function (o) { return o.status === 'prep' || o.status === 'printed'; }).length;
+      el.className = 'stat' + (open ? ' bad' : '');
+      el.innerHTML = open ? nn(open) + ' طلب لم يُسلَّم للشحن بعد' : 'كل الطلبات سُلّمت أو أُلغيت';
+    } else { el.className = 'stat'; el.textContent = 'لا توجد طلبات بعد'; }
+
+    el = $('st-templates');
+    var n = tp && Array.isArray(tp.tpls) ? tp.tpls.length : 15;
+    el.innerHTML = nn(n) + ' قالب جاهز';
+  }
+  stats();
+  Store.onChange(stats);
+  window.addEventListener('pageshow', function (e) { if (e.persisted) stats(); });
+
+  function stamp() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function hasData() { return Store.NAMES.some(function (n) { return Store.read(n, null) !== null; }); }
+
+  $('bk-file').addEventListener('click', function () {
+    if (!hasData()) { say('لا توجد بيانات محفوظة بعد لنسخها.'); return; }
+    try {
+      var blob = new Blob([Store.exportAll()], { type: 'application/json' });
+      var url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = 'store-hub-backup-' + stamp() + '.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+      say('نُزّل ملف النسخة الاحتياطية. احتفظ به في مكان آمن.');
+    } catch (e) { $('bk').value = Store.exportAll(); say('تعذّر التنزيل. وضعنا النص في الخانة أدناه، انسخه واحفظه في ملاحظاتك.'); }
+  });
+  $('bk-copy').addEventListener('click', function () {
+    if (!hasData()) { say('لا توجد بيانات محفوظة بعد لنسخها.'); return; }
+    var text = Store.exportAll(), box = $('bk');
+    var fb = function () { box.value = text; box.focus(); box.select(); say('تعذّر النسخ تلقائياً. حدّدنا لك النص، انسخه يدوياً.'); };
+    try { navigator.clipboard.writeText(text).then(function () { say('تم نسخ النسخة الاحتياطية. الصقها في ملاحظاتك أو أرسلها لنفسك.'); }, fb); } catch (e) { fb(); }
+  });
+  $('bk-pick').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () { $('bk').value = String(r.result || ''); say('قُرئ الملف. اضغط «استعادة من النص» للتأكيد.'); };
+    r.onerror = function () { say('تعذّرت قراءة الملف.'); };
+    r.readAsText(f);
+  });
+  var armed = false, timer = null;
+  $('bk-restore').addEventListener('click', function () {
+    var b = this, text = $('bk').value.trim();
+    if (!text) { say('اختر ملف النسخة أو الصق نصها أولاً.'); return; }
+    if (!armed) {
+      armed = true; b.textContent = 'اضغط للتأكيد'; b.classList.add('armed');
+      clearTimeout(timer);
+      timer = setTimeout(function () { armed = false; b.textContent = 'استعادة من النص'; b.classList.remove('armed'); }, 4000);
+      return;
+    }
+    armed = false; b.textContent = 'استعادة من النص'; b.classList.remove('armed');
+    var res = Store.importAll(text);
+    if (!res.ok) { say(res.error); return; }
+    $('bk').value = ''; stats();
+    say('تمت الاستعادة: ' + res.names.length + ' من الأقسام.');
+  });
+})();
+</script>
+</body>
+</html>

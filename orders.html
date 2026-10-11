@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الطلبات اليومية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+* { box-sizing: border-box; }
+.wrap { max-width: 1080px; margin-inline: auto; padding-inline: 16px; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 16px; }
+h1, h2 { font-family: var(--font-display); font-weight: 600; margin: 0; text-wrap: balance; }
+h1 { font-size: 1.5rem; line-height: 1.3; }
+h2 { font-size: 1rem; }
+p { margin: 0; }
+a { color: var(--accent); }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.num { direction: ltr; unicode-bidi: isolate; display: inline-block; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+header { display: flex; flex-direction: column; gap: 4px; }
+header p { color: var(--muted); max-width: 65ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.pad { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label, .lbl { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+input, select, textarea { font: inherit; color: var(--ink); }
+.field input, .field select, .tb-search, .tb-input {
+  width: 100%; height: 42px; padding-inline: 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--field); font-size: 1rem;
+}
+input[type="number"] { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; }
+input.ltr { direction: ltr; text-align: right; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.fgrid .wide { grid-column: 1 / -1; }
+@media (min-width: 720px) { .fgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .fgrid .w2 { grid-column: span 2; } }
+
+.btn {
+  height: 42px; padding-inline: 16px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); white-space: nowrap;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.sm { height: 36px; padding-inline: 12px; font-size: 0.9rem; }
+.btn.danger { color: var(--bad); }
+.btn.armed { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.toolbar { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+@media (min-width: 720px) { .toolbar { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.8fr) minmax(0, 1.3fr); } }
+.dayrow { display: flex; gap: 8px; align-items: center; }
+.dayrow input { flex: 1 1 auto; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  height: 40px; padding-inline: 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.chip .n { font-variant-numeric: tabular-nums; background: var(--field); border-radius: 999px; padding-inline: 8px; font-size: 0.85rem; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip[aria-pressed="true"] .n { background: rgba(255,255,255,0.22); color: inherit; }
+.chip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.chip i.prep { background: var(--s-prep); } .chip i.printed { background: var(--s-print); } .chip i.shipped { background: var(--s-ship); } .chip i.cancelled { background: var(--s-cancel); }
+
+.demo { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; background: var(--s-prep-bg); border-color: var(--s-prep); }
+#status { min-height: 1.4em; color: var(--muted); font-size: 0.88rem; }
+.errmsg { color: var(--bad); font-size: 0.9rem; }
+
+/* order list */
+.head { display: none; }
+.rows { display: flex; flex-direction: column; gap: 10px; }
+.item { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); border-inline-start-width: 5px; overflow: hidden; }
+.item.s-prep { border-inline-start-color: var(--s-prep); }
+.item.s-printed { border-inline-start-color: var(--s-print); }
+.item.s-shipped { border-inline-start-color: var(--s-ship); }
+.item.s-cancelled { border-inline-start-color: var(--s-cancel); }
+.item.s-cancelled .ordno, .item.s-cancelled .what { text-decoration: line-through; text-decoration-color: var(--s-cancel); }
+.row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px 14px; align-items: center; }
+.cell { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cl { font-size: 0.75rem; color: var(--muted); }
+.ordno { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; direction: ltr; unicode-bidi: isolate; text-align: right; font-weight: 600; overflow-wrap: anywhere; }
+.plat { font-size: 0.82rem; color: var(--muted); }
+.cust { font-weight: 600; overflow-wrap: anywhere; }
+.what { overflow-wrap: anywhere; }
+.what .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; direction: ltr; unicode-bidi: isolate; display: inline-block; }
+.trk { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; direction: ltr; unicode-bidi: isolate; text-align: right; font-size: 0.85rem; overflow-wrap: anywhere; }
+.pill { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; align-self: flex-start; }
+.pill.prep { background: var(--s-prep-bg); color: var(--s-prep); }
+.pill.printed { background: var(--s-print-bg); color: var(--s-print); }
+.pill.shipped { background: var(--s-ship-bg); color: var(--s-ship); }
+.pill.cancelled { background: var(--s-cancel-bg); color: var(--s-cancel); }
+.stk { font-size: 0.78rem; color: var(--muted); }
+.acts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.edit { border-top: 1px solid var(--line); background: var(--field); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.edit .field input, .edit .field select { background: var(--surface); }
+@media (min-width: 900px) {
+  .head, .row { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.3fr) minmax(0, 1.6fr) minmax(0, 1.1fr) minmax(0, 1.3fr) minmax(0, 2.2fr); gap: 14px; }
+  .head { display: grid; padding: 0 19px 6px 14px; color: var(--muted); font-size: 0.78rem; font-weight: 500; }
+  .cl { display: none; }
+}
+.empty { padding: 28px 16px; text-align: center; color: var(--muted); }
+
+/* inventory link */
+.flow { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+@media (min-width: 720px) { .flow { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; } }
+.step { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--field); display: flex; flex-direction: column; gap: 2px; }
+.step b { font-family: var(--font-display); font-size: 0.9rem; }
+.step span { font-size: 0.82rem; color: var(--muted); }
+.arrow { display: none; align-self: center; color: var(--muted); font-size: 1.3rem; }
+@media (min-width: 720px) { .arrow { display: block; } }
+table.lines { width: 100%; border-collapse: collapse; }
+table.lines th, table.lines td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+table.lines th { font-size: 0.78rem; font-weight: 500; color: var(--muted); }
+table.lines td.q { text-align: left; font-weight: 600; }
+.tablebox { overflow-x: auto; }
+.tag { font-size: 0.75rem; font-weight: 600; padding: 0 8px; border-radius: 999px; background: var(--s-ship-bg); color: var(--s-ship); }
+.tag.back { background: var(--s-prep-bg); color: var(--s-prep); }
+
+textarea.big { width: 100%; min-height: 150px; border-radius: 8px; border: 1px solid var(--line); background: var(--field); padding: 10px; font-size: 0.92rem; line-height: 1.8; }
+#fallback-box textarea { direction: ltr; min-height: 110px; }
+.warnlist { margin: 0; padding-inline-start: 18px; display: flex; flex-direction: column; gap: 4px; font-size: .9rem; }
+.stk.errmsg { font-size: .78rem; }
+</style>
+</head>
+<body>
+<script src="nav.js"></script>
+<div class="wrap" dir="rtl" lang="ar">
+  <header>
+    <h1>إدارة وتنظيم الطلبات اليومية</h1>
+    <p>سجّل طلبات نون وترنديول، وانقلها بضغطة من التجهيز إلى الطباعة إلى التسليم لشركة الشحن. عند «تم الشحن» تُخصم القطع من المخزون تلقائياً.</p>
+  </header>
+
+  <div class="card pad demo" id="demo" hidden style="flex-direction:row">
+    <span>الطلبات الظاهرة أمثلة تجريبية لتجربة الأداة.</span>
+    <span class="btns">
+      <button class="btn sm primary" id="demo-clear" type="button">ابدأ بقائمة فارغة</button>
+      <button class="btn sm" id="demo-keep" type="button">أبقِ الأمثلة</button>
+    </span>
+  </div>
+
+  <section class="card pad" aria-labelledby="h-new">
+    <h2 id="h-new">طلب جديد</h2>
+    <div class="fgrid" id="nf">
+      <div class="field"><label for="f-no">رقم الطلب</label><input id="f-no" class="ltr" type="text" autocomplete="off"></div>
+      <div class="field"><label for="f-plat">المنصة</label>
+        <select id="f-plat"><option value="trendyol">ترنديول</option><option value="noon">نون</option><option value="other">أخرى</option></select></div>
+      <div class="field"><label for="f-item">الكود SKU أو اسم المنتج</label><input id="f-item" class="ltr" type="text" autocomplete="off"></div>
+      <div class="field"><label for="f-qty">الكمية</label><input id="f-qty" type="number" inputmode="numeric" min="1" step="1" value="1"></div>
+      <div class="field w2"><label for="f-cust">اسم العميل</label><input id="f-cust" type="text" autocomplete="off"></div>
+      <div class="field"><label for="f-co">شركة الشحن</label>
+        <select id="f-co"><option value="jt">J&amp;T Express</option><option value="other">شركة أخرى</option></select></div>
+      <div class="field"><label for="f-trk">رقم التتبع (اختياري)</label><input id="f-trk" class="ltr" type="text" autocomplete="off"></div>
+    </div>
+    <div class="btns"><button class="btn primary" id="f-save" type="button">تسجيل الطلب</button></div>
+    <p class="errmsg" id="f-err" hidden></p>
+    <p class="small muted">اكتب الكود (SKU) كما هو في صفحة المخزون ليُخصم من المخزون بدقة. الطلب الجديد يبدأ بحالة «قيد التجهيز».</p>
+  </section>
+
+  <section class="card pad" aria-label="تصفية الطلبات">
+    <div class="toolbar">
+      <input class="tb-search" id="q" type="search" placeholder="ابحث برقم الطلب أو العميل أو الكود" aria-label="بحث">
+      <select class="tb-input" id="plat-filter" aria-label="تصفية حسب المنصة">
+        <option value="all">كل المنصات</option><option value="trendyol">ترنديول</option><option value="noon">نون</option><option value="other">أخرى</option>
+      </select>
+      <div class="dayrow">
+        <input class="tb-input" id="day" type="date" aria-label="تاريخ الطلبات">
+        <button class="btn sm" id="day-today" type="button">اليوم</button>
+        <button class="btn sm" id="day-all" type="button" aria-pressed="false">كل الأيام</button>
+      </div>
+    </div>
+    <div class="chips" role="group" aria-label="تصفية حسب الحالة" id="filters"></div>
+    <div id="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <div>
+    <div class="head" aria-hidden="true">
+      <span>رقم الطلب</span><span>العميل</span><span>المنتج والكمية</span><span>التتبع</span><span>الحالة</span><span>إجراء</span>
+    </div>
+    <div class="rows" id="rows"></div>
+  </div>
+
+  <section class="card pad" aria-labelledby="h-inv">
+    <h2 id="h-inv">ربط المخزون</h2>
+    <div class="flow" aria-label="كيف يُخصم المخزون">
+      <div class="step"><b>1. يُسلَّم الطلب للشحن</b><span>تضغط «سُلّم لـ J&amp;T» أو تغيّر حالته إلى «تم الشحن».</span></div>
+      <div class="arrow" aria-hidden="true">&#8592;</div>
+      <div class="step"><b>2. يُخصم تلقائياً</b><span>تُنقص الكمية من المنتج صاحب نفس الكود (SKU).</span></div>
+      <div class="arrow" aria-hidden="true">&#8592;</div>
+      <div class="step"><b>3. يظهر في سجل المخزون</b><span>وإن تراجعت أو ألغيت الطلب تعود القطع للمخزون.</span></div>
+    </div>
+    <div id="inv-body" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="card pad" aria-labelledby="h-rep">
+    <h2 id="h-rep">تقرير الطلبات</h2>
+    <p class="small muted" id="rep-scope"></p>
+    <textarea class="big" id="report" readonly aria-label="نص التقرير"></textarea>
+    <div class="btns">
+      <button class="btn primary" id="rep-copy" type="button">نسخ التقرير</button>
+      <button class="btn" id="rep-tsv" type="button">نسخ الطلبات للإكسل</button>
+    </div>
+    <div id="fallback-box" hidden><textarea class="big" id="fallback" readonly aria-label="النص للنسخ"></textarea></div>
+  </section>
+
+  <p class="small muted">تُحفظ الطلبات في هذا المتصفح فقط، فانسخ نسخة احتياطية من <a href="index.html">الصفحة الرئيسية</a> بين وقت وآخر.</p>
+</div>
+<script src="store.js"></script>
+<script src="logic.js"></script>
+<script>
+(function () {
+  var PLAT = Ord.PLAT, coName = Ord.coName, statusLabel = Ord.statusLabel, nextStatus = Ord.nextStatus, prevStatus = Ord.prevStatus,
+      dayKey = Ord.dayKey, dayLabel = Ord.dayLabel, timeLabel = Ord.timeLabel, filterOrders = Ord.filterOrders,
+      buildReport = Ord.buildReport, toTSV = Ord.toTSV;
+  var uid = function () { return 'o' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
+  var MIN = 60000;
+
+  function seed() {
+    var n = Date.now(), d0 = new Date(); d0.setHours(0, 0, 0, 0);
+    /* كل الأمثلة تقع في اليوم الحالي حتى لو فُتحت الصفحة بعد منتصف الليل بقليل */
+    function ago(m) { return Math.max(d0.getTime() + MIN, n - m * MIN); }
+    return {
+      demo: true,
+      orders: [
+        { id: uid(), no: 'TY-100231', platform: 'trendyol', customer: 'سارة', item: 'CH-30W-01', qty: 2, company: 'jt', tracking: '', status: 'prep', deducted: false, createdAt: ago(20), updatedAt: ago(20) },
+        { id: uid(), no: 'NN-554207', platform: 'noon', customer: 'خالد', item: 'CB-IP-1M-BK', qty: 1, company: 'jt', tracking: '', status: 'prep', deducted: false, createdAt: ago(45), updatedAt: ago(45) },
+        { id: uid(), no: 'TY-100228', platform: 'trendyol', customer: 'نورة', item: 'EB-BT-53', qty: 1, company: 'jt', tracking: '', status: 'printed', deducted: false, createdAt: ago(90), updatedAt: ago(30) },
+        { id: uid(), no: 'NN-554198', platform: 'noon', customer: 'فهد', item: 'SP-GL-61', qty: 3, company: 'jt', tracking: '', status: 'printed', deducted: false, createdAt: ago(180), updatedAt: ago(60) },
+        { id: uid(), no: 'TY-100219', platform: 'trendyol', customer: 'ريم', item: 'CS-SIL-61-BL', qty: 1, company: 'jt', tracking: 'JT7000123101', status: 'shipped', deducted: true, createdAt: ago(240), updatedAt: ago(150) },
+        { id: uid(), no: 'NN-554190', platform: 'noon', customer: 'ماجد', item: 'CH-30W-01', qty: 1, company: 'jt', tracking: '', status: 'cancelled', deducted: false, createdAt: ago(300), updatedAt: ago(200) }
+      ]
+    };
+  }
+  var state;
+  var saved = Store.read('orders', null);
+  var fresh = !(saved && Array.isArray(saved.orders));
+  state = fresh ? seed() : saved;
+  function save() { Store.write('orders', state); }
+  if (fresh) save();
+
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function nn(n) { return '<span class="num">' + esc(n) + '</span>'; }
+  var stEl = $('status');
+  function say(t) { stEl.textContent = t; }
+
+  var todayKey = dayKey(Date.now());
+  var ui = { status: 'all', platform: 'all', q: '', date: todayKey, editing: null };
+  /* seeded examples are timestamped now, so today's view shows them */
+
+  /* ---------- filters ---------- */
+  function baseFilter() { return { date: ui.date, platform: ui.platform, q: ui.q }; }
+  function renderFilters() {
+    var base = filterOrders(state.orders, baseFilter());
+    var c = { all: base.length, prep: 0, printed: 0, shipped: 0, cancelled: 0 };
+    base.forEach(function (o) { c[o.status]++; });
+    var defs = [['all', 'الكل', ''], ['prep', 'قيد التجهيز', 'prep'], ['printed', 'تم الطباعة', 'printed'], ['shipped', 'تم الشحن وسُلّم', 'shipped'], ['cancelled', 'ملغي', 'cancelled']];
+    $('filters').innerHTML = defs.map(function (d) {
+      return '<button type="button" class="chip" data-f="' + d[0] + '" aria-pressed="' + (ui.status === d[0]) + '">' + (d[2] ? '<i class="' + d[2] + '"></i>' : '') + d[1] + ' <span class="n">' + c[d[0]] + '</span></button>';
+    }).join('');
+    $('day').value = ui.date === 'all' ? '' : ui.date;
+    $('day-all').setAttribute('aria-pressed', String(ui.date === 'all'));
+    $('day-all').style.background = ui.date === 'all' ? 'var(--accent)' : '';
+    $('day-all').style.color = ui.date === 'all' ? 'var(--accent-ink)' : '';
+  }
+
+  /* ---------- list ---------- */
+  function find(id) { return state.orders.filter(function (o) { return o.id === id; })[0]; }
+  function actionsHtml(o) {
+    var s = o.status, h = '';
+    if (s === 'prep') h += '<button type="button" class="btn sm primary" data-act="next" data-id="' + o.id + '">تمت الطباعة</button>';
+    if (s === 'printed') h += '<button type="button" class="btn sm primary" data-act="next" data-id="' + o.id + '">سُلّم لـ ' + coName(o.company) + '</button>';
+    if (s === 'shipped') {
+      if (o.deducted) h += '<span class="tag">خُصم من المخزون</span>';
+      else h += '<span class="stk errmsg">' + esc(o.stockWarn || 'لم يُخصم من المخزون') + '</span><button type="button" class="btn sm" data-act="retry" data-id="' + o.id + '">أعد خصمه</button>';
+    }
+    if (prevStatus(s)) h += '<button type="button" class="btn sm" data-act="prev" data-id="' + o.id + '">تراجع</button>';
+    if (s === 'cancelled') h += '<button type="button" class="btn sm" data-act="reopen" data-id="' + o.id + '">إعادة فتح</button>';
+    else h += '<button type="button" class="btn sm danger" data-act="cancel" data-id="' + o.id + '">إلغاء</button>';
+    h += '<button type="button" class="btn sm" data-act="edit" data-id="' + o.id + '">' + (ui.editing === o.id ? 'إغلاق' : 'تعديل') + '</button>';
+    return h;
+  }
+  function editHtml(o) {
+    var opt = function (v, label, cur) { return '<option value="' + v + '"' + (cur === v ? ' selected' : '') + '>' + label + '</option>'; };
+    return '<div class="edit"><div class="fgrid">' +
+      '<div class="field"><label for="e-no">رقم الطلب</label><input id="e-no" class="ltr" type="text" value="' + esc(o.no) + '"></div>' +
+      '<div class="field"><label for="e-plat">المنصة</label><select id="e-plat">' + opt('trendyol', 'ترنديول', o.platform) + opt('noon', 'نون', o.platform) + opt('other', 'أخرى', o.platform) + '</select></div>' +
+      '<div class="field"><label for="e-item">الكود أو المنتج</label><input id="e-item" class="ltr" type="text" value="' + esc(o.item) + '"></div>' +
+      '<div class="field"><label for="e-qty">الكمية</label><input id="e-qty" type="number" inputmode="numeric" min="1" step="1" value="' + esc(o.qty) + '"></div>' +
+      '<div class="field w2"><label for="e-cust">العميل</label><input id="e-cust" type="text" value="' + esc(o.customer) + '"></div>' +
+      '<div class="field"><label for="e-co">شركة الشحن</label><select id="e-co">' + opt('jt', 'J&amp;T Express', o.company) + opt('other', 'شركة أخرى', o.company) + '</select></div>' +
+      '<div class="field"><label for="e-trk">رقم التتبع</label><input id="e-trk" class="ltr" type="text" value="' + esc(o.tracking) + '"></div>' +
+      '</div><div class="btns">' +
+      '<button type="button" class="btn primary sm" data-act="save" data-id="' + o.id + '">حفظ التعديل</button>' +
+      '<button type="button" class="btn sm" data-act="close">إلغاء</button>' +
+      '<button type="button" class="btn sm danger" data-act="del" data-id="' + o.id + '">حذف الطلب</button></div>' +
+      '<p class="errmsg" id="e-err" hidden></p></div>';
+  }
+  function rowHtml(o) {
+    var html = '<div class="item s-' + o.status + '"><div class="row">' +
+      '<div class="cell"><span class="ordno">' + esc(o.no) + '</span><span class="plat">' + PLAT[o.platform] + ' · ' + nn(timeLabel(o.createdAt)) + '</span></div>' +
+      '<div class="cell"><span class="cl">العميل</span><span class="cust">' + esc(o.customer || 'بدون اسم') + '</span></div>' +
+      '<div class="cell"><span class="cl">المنتج والكمية</span><span class="what"><span class="code">' + esc(o.item) + '</span> ×' + nn(o.qty) + '</span></div>' +
+      '<div class="cell"><span class="cl">التتبع</span><span class="trk">' + (o.tracking ? esc(o.tracking) : '—') + '</span></div>' +
+      '<div class="cell"><span class="cl">الحالة</span><span class="pill ' + o.status + '">' + statusLabel(o.status, o.company) + '</span></div>' +
+      '<div class="cell"><span class="cl">إجراء</span><div class="acts">' + actionsHtml(o) + '</div></div>' +
+      '</div>';
+    if (ui.editing === o.id) html += editHtml(o);
+    return html + '</div>';
+  }
+  function renderRows() {
+    var list = filterOrders(state.orders, { date: ui.date, platform: ui.platform, q: ui.q, status: ui.status })
+      .sort(function (a, b) { return b.createdAt - a.createdAt; });
+    if (!state.orders.length) {
+      $('rows').innerHTML = '<div class="card empty">لا توجد طلبات بعد. سجّل أول طلب من النموذج في الأعلى.</div>';
+    } else if (!list.length) {
+      $('rows').innerHTML = '<div class="card empty">لا توجد طلبات تطابق التصفية. جرّب «كل الأيام» أو غيّر الحالة.</div>';
+    } else {
+      $('rows').innerHTML = list.map(rowHtml).join('');
+    }
+  }
+
+  /* ---------- inventory link ---------- */
+  function renderInv() {
+    var inv = Store.read('inventory', null), n = inv && Array.isArray(inv.products) ? inv.products.length : 0;
+    var bad = state.orders.filter(function (o) { return o.status === 'shipped' && !o.deducted; });
+    var h = '<p class="small muted">' + (n ? 'في المخزون ' + nn(n) + ' منتج. ' : 'لا توجد بيانات مخزون بعد. ') + '<a href="inventory.html">افتح صفحة المخزون</a></p>';
+    if (bad.length) {
+      h += '<p class="errmsg"><strong>' + nn(bad.length) + '</strong> طلب مشحون لم يُخصم من المخزون:</p><ul class="warnlist">' +
+        bad.map(function (o) { return '<li><span class="trk">' + esc(o.no) + '</span> · ' + esc(o.item) + ' ×' + nn(o.qty) + ' — ' + esc(o.stockWarn || 'لم يُخصم بعد') + '</li>'; }).join('') +
+        '</ul><div class="btns"><button class="btn primary sm" id="inv-retry" type="button">أعد محاولة الخصم للكل</button></div>' +
+        '<p class="small muted">الأسباب الشائعة: الكود مكتوب بشكل مختلف عن المخزون، أو الكمية المتوفرة أقل من المطلوب. صحّح الكود أو وفّر الكمية ثم أعد المحاولة.</p>';
+    } else {
+      h += '<p>لا توجد طلبات مشحونة بانتظار الخصم.</p>';
+    }
+    $('inv-body').innerHTML = h;
+  }
+  $('inv-body').addEventListener('click', function (e) {
+    var b = e.target.closest('#inv-retry'); if (!b) return;
+    var ok = 0, fail = 0;
+    state.orders.forEach(function (o) {
+      if (Ord.stockAction(o) !== 'deduct') return;
+      if (applyStock(o).ok) ok++; else fail++;
+    });
+    save(); renderAll();
+    say('أُعيدت المحاولة: خُصم ' + ok + ' طلب' + (fail ? '، وتعذّر ' + fail : '') + '.');
+  });
+
+  /* ---------- report ---------- */
+  function renderReport() {
+    var f = { date: ui.date, platform: ui.platform };
+    var list = filterOrders(state.orders, f);
+    var scope = ui.date === 'all' ? 'كل الأيام' : dayLabel(ui.date);
+    var pl = ui.platform === 'all' ? '' : PLAT[ui.platform];
+    $('rep-scope').textContent = 'يشمل التقرير: ' + scope + (pl ? ' · ' + pl : ' · كل المنصات') + '. غيّر التاريخ والمنصة من الأعلى.';
+    $('report').value = buildReport(list, scope, pl);
+  }
+
+  function renderAll() { $('demo').hidden = !state.demo; renderFilters(); renderRows(); renderInv(); renderReport(); }
+
+  /* ---------- actions ---------- */
+  function applyStock(o) {
+    var inv = Store.read('inventory', null);
+    var r = Ord.syncStock(o, inv);
+    if (r.changed) Store.write('inventory', inv);
+    return r;
+  }
+  function stockNote(o, r) {
+    if (!r || !r.action) return '';
+    if (r.action === 'deduct') return r.ok ? ' خُصمت الكمية من المخزون، ورصيد «' + r.name + '» الآن ' + r.after + '.' : ' تنبيه: لم تُخصم من المخزون. ' + Ord.reasonText(r.reason, r.have, o.qty);
+    return r.ok ? ' أُرجعت الكمية إلى المخزون، ورصيد «' + r.name + '» الآن ' + r.after + '.' : ' تنبيه: تعذّر إرجاع الكمية إلى المخزون. ' + Ord.reasonText(r.reason, r.have, o.qty);
+  }
+  function setStatus(o, s) {
+    o.status = s; o.updatedAt = Date.now();
+    var r = applyStock(o);
+    if (o.status !== 'shipped') o.stockWarn = '';
+    save(); renderAll();
+    return r;
+  }
+  var armed = null, armTimer = null;
+  $('rows').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var act = b.getAttribute('data-act'), id = b.getAttribute('data-id'), o = id ? find(id) : null, r;
+    if (act === 'next') { var n = nextStatus(o.status); if (n) { r = setStatus(o, n); say('«' + o.no + '»: ' + statusLabel(n, o.company) + '.' + stockNote(o, r)); } }
+    else if (act === 'prev') { var p = prevStatus(o.status); if (p) { r = setStatus(o, p); say('«' + o.no + '»: رجع إلى ' + statusLabel(p, o.company) + '.' + stockNote(o, r)); } }
+    else if (act === 'cancel') { r = setStatus(o, 'cancelled'); say('أُلغي الطلب «' + o.no + '».' + stockNote(o, r)); }
+    else if (act === 'reopen') { r = setStatus(o, 'prep'); say('أُعيد فتح «' + o.no + '» بحالة قيد التجهيز.'); }
+    else if (act === 'retry') { r = applyStock(o); save(); renderAll(); say('«' + o.no + '»:' + (stockNote(o, r) || ' لا حاجة لخصم.')); }
+    else if (act === 'edit') { ui.editing = ui.editing === id ? null : id; renderRows(); }
+    else if (act === 'close') { ui.editing = null; renderRows(); }
+    else if (act === 'save') {
+      var no = $('e-no').value.trim(), item = $('e-item').value.trim(), plat = $('e-plat').value, qty = Math.round(parseFloat($('e-qty').value)), err = $('e-err');
+      var msg = !no ? 'اكتب رقم الطلب.' : !item ? 'اكتب الكود أو اسم المنتج.' : !(qty >= 1) ? 'الكمية يجب أن تكون 1 أو أكثر.' :
+        state.orders.some(function (x) { return x.id !== id && x.platform === plat && x.no.toLowerCase() === no.toLowerCase(); }) ? 'يوجد طلب بنفس الرقم في هذه المنصة.' : '';
+      if (msg) { err.textContent = msg; err.hidden = false; return; }
+      /* إن كان الطلب مخصوماً وتغيّر الكود أو الكمية نُرجع القديم ثم نخصم الجديد */
+      var restockFirst = o.deducted && (o.item.toLowerCase() !== item.toLowerCase() || o.qty !== qty);
+      if (restockFirst) {
+        var inv0 = Store.read('inventory', null);
+        if (inv0 && Array.isArray(inv0.products) && Inv.adjustStock(inv0, o.item, o.qty, 'تعديل الطلب ' + o.no).ok) Store.write('inventory', inv0);
+        o.deducted = false;
+      }
+      o.no = no; o.item = item; o.platform = plat; o.qty = qty; o.customer = $('e-cust').value.trim();
+      o.company = $('e-co').value; o.tracking = $('e-trk').value.trim(); o.updatedAt = Date.now();
+      var note = restockFirst ? stockNote(o, applyStock(o)) : '';
+      ui.editing = null; save(); renderAll(); say('تم حفظ تعديلات «' + o.no + '».' + note);
+    }
+    else if (act === 'del') {
+      if (armed === id) {
+        var dn = '';
+        if (o.deducted) { o.status = 'cancelled'; dn = stockNote(o, applyStock(o)); }
+        state.orders = state.orders.filter(function (x) { return x.id !== id; });
+        armed = null; ui.editing = null; save(); renderAll(); say('حُذف الطلب «' + o.no + '».' + dn);
+      } else {
+        armed = id; b.textContent = 'اضغط للتأكيد'; b.classList.add('armed');
+        clearTimeout(armTimer);
+        armTimer = setTimeout(function () { armed = null; if (b.isConnected) { b.textContent = 'حذف الطلب'; b.classList.remove('armed'); } }, 3000);
+      }
+    }
+  });
+
+  /* ---------- new order ---------- */
+  function addOrder() {
+    var no = $('f-no').value.trim(), item = $('f-item').value.trim(), plat = $('f-plat').value;
+    var qty = Math.round(parseFloat($('f-qty').value)), err = $('f-err');
+    var msg = !no ? 'اكتب رقم الطلب.' : !item ? 'اكتب الكود أو اسم المنتج.' : !(qty >= 1) ? 'الكمية يجب أن تكون 1 أو أكثر.' :
+      state.orders.some(function (x) { return x.platform === plat && x.no.toLowerCase() === no.toLowerCase(); }) ? 'هذا الطلب مسجّل مسبقاً في ' + PLAT[plat] + '.' : '';
+    if (msg) { err.textContent = msg; err.hidden = false; return; }
+    err.hidden = true;
+    var now = Date.now();
+    state.orders.push({ id: uid(), no: no, platform: plat, customer: $('f-cust').value.trim(), item: item, qty: qty, company: $('f-co').value,
+      tracking: $('f-trk').value.trim(), status: 'prep', deducted: false, createdAt: now, updatedAt: now });
+    ['f-no', 'f-item', 'f-cust', 'f-trk'].forEach(function (id) { $(id).value = ''; });
+    $('f-qty').value = 1;
+    if (ui.date !== 'all' && ui.date !== todayKey) ui.date = todayKey;
+    save(); renderAll(); say('سُجّل الطلب «' + no + '» بحالة قيد التجهيز.');
+    $('f-no').focus();
+  }
+  $('f-save').addEventListener('click', addOrder);
+  $('nf').addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); addOrder(); } });
+
+  /* ---------- filters events ---------- */
+  $('filters').addEventListener('click', function (e) { var b = e.target.closest('[data-f]'); if (!b) return; ui.status = b.getAttribute('data-f'); renderFilters(); renderRows(); });
+  $('q').addEventListener('input', function (e) { ui.q = e.target.value; renderFilters(); renderRows(); });
+  $('plat-filter').addEventListener('change', function (e) { ui.platform = e.target.value; renderFilters(); renderRows(); renderReport(); });
+  $('day').addEventListener('change', function (e) { ui.date = e.target.value || 'all'; renderFilters(); renderRows(); renderReport(); });
+  $('day-today').addEventListener('click', function () { ui.date = dayKey(Date.now()); todayKey = ui.date; renderFilters(); renderRows(); renderReport(); });
+  $('day-all').addEventListener('click', function () { ui.date = 'all'; renderFilters(); renderRows(); renderReport(); });
+
+  /* ---------- demo ---------- */
+  $('demo-clear').addEventListener('click', function () { state.orders = []; state.demo = false; save(); renderAll(); say('بدأت بقائمة فارغة.'); });
+  $('demo-keep').addEventListener('click', function () { state.demo = false; save(); renderAll(); });
+
+  /* ---------- copy ---------- */
+  function copyText(text, okMsg) {
+    var box = $('fallback-box'), ta = $('fallback');
+    var fb = function () { box.hidden = false; ta.value = text; ta.focus(); ta.select(); say('تعذّر النسخ تلقائياً. حدّدنا لك النص، انسخه يدوياً.'); };
+    try { navigator.clipboard.writeText(text).then(function () { box.hidden = true; say(okMsg); }, fb); } catch (err) { fb(); }
+  }
+  $('rep-copy').addEventListener('click', function () { copyText($('report').value, 'تم نسخ التقرير.'); });
+  $('rep-tsv').addEventListener('click', function () {
+    var list = filterOrders(state.orders, { date: ui.date, platform: ui.platform });
+    if (!list.length) { say('لا توجد طلبات لنسخها في هذه التصفية.'); return; }
+    copyText(toTSV(list), 'تم نسخ الطلبات. الصقها في الإكسل أو Google Sheets.');
+  });
+
+  /* عند تغيّر البيانات من صفحة أخرى */
+  function reload() {
+    var o = Store.read('orders', null);
+    if (o && Array.isArray(o.orders)) { state = o; ui.editing = null; }
+    renderAll();
+  }
+  Store.onChange(function (n) { if (n === 'orders' || n === 'inventory') reload(); });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) reload(); });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
